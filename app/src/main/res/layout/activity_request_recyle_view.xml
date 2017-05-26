@@ -16,6 +16,7 @@
         android:padding="15dp">
 
         <ImageView
+            android:id="@+id/close_act_btn"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_clear_icon" />

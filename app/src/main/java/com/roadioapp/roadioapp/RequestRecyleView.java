@@ -7,6 +7,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,6 +38,14 @@ public class RequestRecyleView extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_request_recyle_view);
+
+        ImageView closeBtn = (ImageView) findViewById(R.id.close_act_btn);
+        closeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         recyclerView = (RecyclerView)findViewById(R.id.requestsRecyler);
         recyclerView.setHasFixedSize(true);

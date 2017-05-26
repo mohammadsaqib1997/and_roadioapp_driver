@@ -1,0 +1,1296 @@
+package com.roadioapp.roadioappuser;
+
+import android.Manifest;
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.Point;
+import android.graphics.drawable.AnimatedVectorDrawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
+import android.media.Image;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
+import android.provider.MediaStore;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.transition.TransitionManager;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.AutocompleteFilter;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBuffer;
+import com.google.android.gms.location.places.PlaceFilter;
+import com.google.android.gms.location.places.PlaceLikelihood;
+import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+public class MapActivity extends AppCompatActivity implements
+        OnMapReadyCallback, View.OnClickListener, View.OnTouchListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SensorEventListener {
+
+    private GoogleApiClient mGoogleApiClient;
+    private GoogleMap mMap;
+    MapFragment mapFragment;
+    LatLng karachi;
+    final private int PERM_REQUEST_LOCATION = 100;
+    private boolean mLocationPermissionGranted;
+    private Location mLastKnownLocation;
+    private LocationManager locationManager;
+    private BroadcastReceiver broadcastReceiver;
+
+    boolean drawerState = false, cameraMove = false, serviceStart = false, pickLocation = false, googleClientConn = false;
+    DrawerLayout drawer_layout;
+
+    ImageView navMenuIcon, pickLocClearBtn, desLocClearBtn, curPlaceSetS, logOutBtn;
+    RelativeLayout mainActCon;
+    LinearLayout sendBtn, sendReqBtn, curLocCont, setCurLocBtn, bottomBtnCon, estCon, typeContPar;
+    TextView sendBtnText, sendReqBtnText, pickLocCurTV, pickLocDesTV;
+
+    RequestQueue geocodingAPIReq, directionAPIReq;
+
+    final private int PLACE_AUTOCOMPLETE_CURRENT_REQUEST_CODE = 5;
+    final private int PLACE_AUTOCOMPLETE_DESTINATION_REQUEST_CODE = 6;
+
+    SensorManager sensorManager;
+    private Sensor sensorAccelerometer;
+    private Sensor sensorMagneticField;
+
+    private float[] valuesAccelerometer;
+    private float[] valuesMagneticField;
+
+    private float[] matrixR;
+    private float[] matrixI;
+    private float[] matrixValues;
+
+    private ProgressDialog progressDialog;
+
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+
+    //Storage Variables
+    final String pickLocHint = "Pick location?";
+    final String desLocHint = "Destination location?";
+    String curLocation="", pickCurLocation="", pickDesLocation="";
+    Marker pickLocMarker, desLocMarker;
+    LatLng curLocLL;
+    boolean firstCamMov = true, reqSendParcel = false;
+    private List<Polyline> polylinePaths = new ArrayList<>();
+    private List<Marker> vehicleMarkers = new ArrayList<>();
+    private LatLngBounds PickDesBounds;
+    byte[] selImgByteArray;
+    private OnlineUser oUser;
+    private Map<String, Object> latLngMap;
+
+    //Firebase Variables
+    private FirebaseAuth mAuth;
+    private String authUid;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    //private DatabaseReference mDatabase, mOnlineUsersCol, mSetUserOnline;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        progressDialog = new ProgressDialog(this);
+
+        if(vehicleMarkers != null && !vehicleMarkers.isEmpty()){
+            vehicleMarkers = new ArrayList<>();
+        }
+
+        /*mDatabase = FirebaseDatabase.getInstance().getReference();
+        mOnlineUsersCol = mDatabase.child("online_users");*/
+
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                updateUI(user);
+            }
+        };
+
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sensorAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorMagneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+        valuesAccelerometer = new float[3];
+        valuesMagneticField = new float[3];
+
+        matrixR = new float[9];
+        matrixI = new float[9];
+        matrixValues = new float[3];
+
+        navMenuIcon = (ImageView) findViewById(R.id.navMenuIcon);
+        navMenuIcon.setOnClickListener(this);
+
+        drawer_layout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer_layout.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                drawerState = true;
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                drawerState = false;
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+                /*if (newState == DrawerLayout.STATE_SETTLING) {
+                    if (drawerState) {
+                        menuCloseBtn();
+                    } else {
+                        menuOpenBtn();
+                    }
+                }
+                if (newState == DrawerLayout.STATE_IDLE) {
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        if (!drawerState) {
+                            menuOpenBtn();
+                        }
+                    } else {
+                        if (drawerState) {
+                            menuCloseBtn();
+                        }
+                    }
+                }*/
+            }
+        });
+
+        NavigationView navView = (NavigationView) drawer_layout.findViewById(R.id.nav_view);
+        logOutBtn = (ImageView) navView.findViewById(R.id.logoutBtn);
+        logOutBtn.setOnClickListener(this);
+
+        mainActCon = (RelativeLayout) findViewById(R.id.mainActCon);
+
+        estCon = (LinearLayout) findViewById(R.id.estCon);
+        typeContPar = (LinearLayout) findViewById(R.id.typeContPar);
+        for (int i = 0; i<typeContPar.getChildCount(); i++){
+            LinearLayout selectedChild = (LinearLayout) typeContPar.getChildAt(i);
+            final int finalI = i;
+            selectedChild.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LinearLayout innerLL = (LinearLayout) v;
+                    LinearLayout innerLLChildAt = (LinearLayout) innerLL.getChildAt(0);
+                    innerLLChildAt.setBackgroundResource(R.drawable.circle_img_rev_border);
+                    for (int i = 0; i<typeContPar.getChildCount(); i++){
+                        if(i != finalI){
+                            LinearLayout selectedChild = (LinearLayout) typeContPar.getChildAt(i);
+                            LinearLayout innerLLChildAtRe = (LinearLayout) selectedChild.getChildAt(0);
+                            innerLLChildAtRe.setBackgroundColor(Color.TRANSPARENT);
+                        }
+                    }
+                }
+            });
+        }
+
+        sendBtn = (LinearLayout) findViewById(R.id.sendBtn);
+        sendBtnText = (TextView) sendBtn.getChildAt(0);
+        sendBtn.setOnTouchListener(this);
+        sendBtn.setOnClickListener(this);
+
+        sendReqBtn = (LinearLayout) findViewById(R.id.sendReqBtn);
+        sendReqBtnText = (TextView) sendReqBtn.getChildAt(0);
+        sendReqBtn.setOnTouchListener(this);
+        sendReqBtn.setOnClickListener(this);
+
+
+        //selTypeCon = (LinearLayout) findViewById(R.id.selTypeCon);
+        curLocCont = (LinearLayout) findViewById(R.id.curLocCont);
+
+        setCurLocBtn = (LinearLayout) findViewById(R.id.setCurLocBtn);
+        setCurLocBtn.setOnClickListener(this);
+
+        pickLocClearBtn = (ImageView) findViewById(R.id.pickLocClearBtn);
+        pickLocClearBtn.setOnClickListener(this);
+
+        desLocClearBtn = (ImageView) findViewById(R.id.desLocClearBtn);
+        desLocClearBtn.setOnClickListener(this);
+
+        pickLocCurTV = (TextView) findViewById(R.id.pickLocCurTV);
+        pickLocCurTV.setOnClickListener(this);
+        pickLocCurTV.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(!s.toString().equals(pickLocHint)){
+                    pickLocClearBtn.setVisibility(View.VISIBLE);
+                }else{
+                    pickLocClearBtn.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        pickLocDesTV = (TextView) findViewById(R.id.pickLocDesTV);
+        pickLocDesTV.setOnClickListener(this);
+        pickLocDesTV.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(!s.toString().equals(desLocHint)){
+                    desLocClearBtn.setVisibility(View.VISIBLE);
+                }else{
+                    desLocClearBtn.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        curPlaceSetS = (ImageView) findViewById(R.id.curPlaceSetS);
+        curPlaceSetS.setOnClickListener(this);
+
+        bottomBtnCon = (LinearLayout) findViewById(R.id.bottomBtnCon);
+
+        geocodingAPIReq = Volley.newRequestQueue(this);
+        directionAPIReq = Volley.newRequestQueue(this);
+
+    }
+
+    private void updateUI(FirebaseUser user) {
+        if (user == null) {
+            //dissCol();
+            finish();
+            Intent moveLogAct = new Intent(this, LoginActivity.class);
+            moveLogAct.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            moveLogAct.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(moveLogAct);
+        }else{
+            authUid = user.getUid();
+            /*mSetUserOnline = mOnlineUsersCol.child(authUid);
+            oUser = new OnlineUser(authUid, 0.0, 0.0, "0");
+            mSetUserOnline.setValue(oUser.toMap());*/
+        }
+    }
+
+    /*private void dissCol(){
+        mSetUserOnline.onDisconnect().removeValue();
+    }*/
+
+    private void signOut() {
+        mAuth.signOut();
+        updateUI(null);
+    }
+
+    private void clientConnect(){
+        googleClientConn = true;
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!permissionCheck()) {
+            setPermission();
+        }else{
+            if(!googleClientConn){
+                clientConnect();
+            }
+            startTrackLoc();
+            if(broadcastReceiver == null){
+                broadcastReceiver = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        if(mMap != null && !mMap.isMyLocationEnabled()){
+                            getDeviceLocation(true);
+                        }
+                        showCurrentPlace((double) intent.getExtras().get("Lat"), (double) intent.getExtras().get("Lng"));
+                        latLngMap = new HashMap<>();
+                        latLngMap.put("lat", intent.getExtras().get("Lat"));
+                        latLngMap.put("lng", intent.getExtras().get("Lng"));
+                        //mSetUserOnline.updateChildren(latLngMap);
+                        //Log.e("LocationUpadte", intent.getExtras().get("Coordinates")+"");
+                    }
+                };
+            }
+            registerReceiver(broadcastReceiver, new IntentFilter("location_update"));
+            sensorManager.registerListener(this, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+            sensorManager.registerListener(this, sensorMagneticField, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(this, sensorAccelerometer);
+        sensorManager.unregisterListener(this, sensorMagneticField);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.e("AppStatus", "App Terminated");
+        //dissCol();
+        if(broadcastReceiver != null){
+            unregisterReceiver(broadcastReceiver);
+        }
+        stopTrackLoc();
+    }
+
+    public void startTrackLoc() {
+        if (permissionCheck()) {
+            if (isGPSEnabled()) {
+                if (!serviceStart) {
+                    Intent i = new Intent(getApplicationContext(), GPS_Service.class);
+                    startService(i);
+                    serviceStart = true;
+                }
+            } else {
+                serviceStart = false;
+                enableGPS();
+            }
+        }
+    }
+
+    public void stopTrackLoc(){
+        Intent i = new Intent(getApplicationContext(), GPS_Service.class);
+        stopService(i);
+        serviceStart = false;
+    }
+
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        try {
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.style_json));
+
+            if (!success) {
+                Log.e("MapTag", "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e("MapTag", "Can't find style. Error: ", e);
+        }
+
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+
+        karachi = new LatLng(24.861462, 67.009939);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(karachi, 10));
+
+        mMap.setOnCameraMoveStartedListener(new GoogleMap.OnCameraMoveStartedListener() {
+            @Override
+            public void onCameraMoveStarted(int reason) {
+                cameraMove = true;
+                //parcelTypeConAnim();
+            }
+        });
+
+        mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+            @Override
+            public void onCameraIdle() {
+                cameraMove = false;
+                //parcelTypeConAnim();
+            }
+        });
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                return true;
+            }
+        });
+
+        /*
+        vehicleMarkers.add(mMap.addMarker(new MarkerOptions().position(new LatLng(24.911621, 67.125808)).icon(BitmapDescriptorFactory.fromResource(R.drawable.top_van)).flat(true).rotation(90.0f)));
+        vehicleMarkers.add(mMap.addMarker(new MarkerOptions().position(new LatLng(24.911480, 67.125140)).icon(BitmapDescriptorFactory.fromResource(R.drawable.top_bike)).flat(true).rotation(270.0f)));
+        vehicleMarkers.add(mMap.addMarker(new MarkerOptions().position(new LatLng(24.907902, 67.123127)).icon(BitmapDescriptorFactory.fromResource(R.drawable.top_truck)).flat(true).rotation(285.0f)));
+        vehicleMarkers.add(mMap.addMarker(new MarkerOptions().position(new LatLng(24.906754, 67.117880)).icon(BitmapDescriptorFactory.fromResource(R.drawable.top_car)).flat(true).rotation(285.0f)));*/
+
+        /*mOnlineUsersCol.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                OnlineUser onlineUser = dataSnapshot.getValue(OnlineUser.class);
+                mMap.addMarker(new MarkerOptions().position(new LatLng(onlineUser.lat, onlineUser.lng)).icon(BitmapDescriptorFactory.fromResource(R.drawable.top_car)).flat(true).rotation(0.0f).anchor(0.5f, 0.5f));
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                OnlineUser onlineUser = dataSnapshot.getValue(OnlineUser.class);
+                mMap.addMarker(new MarkerOptions().position(new LatLng(onlineUser.lat, onlineUser.lng)).icon(BitmapDescriptorFactory.fromResource(R.drawable.top_car)).flat(true).rotation(0.0f).anchor(0.5f, 0.5f));
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                OnlineUser onlineUser = dataSnapshot.getValue(OnlineUser.class);
+                mMap.addMarker(new MarkerOptions().position(new LatLng(onlineUser.lat, onlineUser.lng)).icon(BitmapDescriptorFactory.fromResource(R.drawable.top_car)).flat(true).rotation(0.0f).anchor(0.5f, 0.5f));
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });*/
+
+        /*updateLocationUI();*/
+        getDeviceLocation(false);
+
+    }
+
+    /*private void updateLocationUI() {
+        if (mMap == null) {
+            return;
+        }
+        if (permissionCheck()) {
+            mLocationPermissionGranted = true;
+        }
+
+        if (mLocationPermissionGranted) {
+            mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        } else {
+            mMap.setMyLocationEnabled(false);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mLastKnownLocation = null;
+        }
+    }*/
+
+    private void getDeviceLocation(final boolean zoom) {
+
+        if (mLocationPermissionGranted) {
+            if(isGPSEnabled()){
+                mLastKnownLocation = LocationServices.FusedLocationApi
+                        .getLastLocation(mGoogleApiClient);
+                if(mLastKnownLocation != null){
+                    if(!mMap.isMyLocationEnabled()){
+                        mMap.setMyLocationEnabled(true);
+                    }else{
+                        showCurrentPlace(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+                    }
+                    if(zoom){
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                new LatLng(mLastKnownLocation.getLatitude(),
+                                        mLastKnownLocation.getLongitude()), 15.0f));
+                    }else{
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                new LatLng(mLastKnownLocation.getLatitude(),
+                                        mLastKnownLocation.getLongitude()), 15.0f));
+                    }
+                }else{
+                    mMap.setMyLocationEnabled(false);
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(karachi, 10));
+                }
+            }else{
+                enableGPS();
+            }
+        }
+    }
+
+    private void showCurrentPlace(final double curLat, final double curLng) {
+        if (mMap == null) {
+            return;
+        }
+
+        if (mLocationPermissionGranted) {
+            if(!pickLocation){
+                pickLocation = true;
+                //Log.e("requestIsGoing", "Going");
+                String url = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+curLat+","+curLng+"&sensor=false&key="+getResources().getString(R.string.google_url_key);
+                StringRequest stringReqData = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String userDataResponse) {
+                        pickLocation = false;
+                        //Log.e("ReqLoc",userDataResponse);
+                        try {
+                            JSONObject rData = new JSONObject(userDataResponse);
+                            String status = rData.getString("status");
+                            JSONArray results = rData.getJSONArray("results");
+                            if(status.equals("OK")){
+                                JSONObject getSingleData = results.getJSONObject(0);
+                                JSONArray addressComponents = getSingleData.getJSONArray("address_components");
+                                JSONObject firstAddName = addressComponents.getJSONObject(0);
+                                String newLoc = firstAddName.getString("long_name");
+                                curLocLL = new LatLng(curLat, curLng);
+                                pickCurLocation = curLocation;
+                                if(firstCamMov){
+                                    setTVCurLoc(newLoc, curLocLL, true);
+                                    firstCamMov = false;
+                                }else if(!curLocation.equals(newLoc)){
+                                    setTVCurLoc(newLoc, curLocLL, true);
+                                }
+                                curLocation = newLoc;
+                            }else{
+                                Toast.makeText(MapActivity.this, status, Toast.LENGTH_SHORT).show();
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        pickLocation = false;
+                        Log.e("ReqErr", String.valueOf(error));
+                    }
+                });
+                stringReqData.setRetryPolicy(new DefaultRetryPolicy(2000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                geocodingAPIReq.add(stringReqData);
+            }
+        } else {
+            setPermission();
+        }
+    }
+
+    private void showDirection(){
+        resetDirection();
+        if(pickLocMarker != null && desLocMarker != null){
+            showProgressDialog();
+            vMarkerVIV(false);
+            String origin = (pickLocMarker.getPosition()).latitude+","+(pickLocMarker.getPosition()).longitude;
+            String destination = (desLocMarker.getPosition()).latitude+","+(desLocMarker.getPosition()).longitude;
+            String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + origin + "&destination=" + destination + "&key=" + getResources().getString(R.string.google_url_key);
+            StringRequest stringReqData = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String userDataResponse) {
+                    hideProgressDialog();
+                    //Log.e("ReqLoc",userDataResponse);
+                    try {
+                        JSONObject rData = new JSONObject(userDataResponse);
+                        String status = rData.getString("status");
+
+                        if(status.equals("OK")){
+                            JSONArray routes = rData.getJSONArray("routes");
+                            JSONObject subRoutes = routes.getJSONObject(0);
+                            JSONObject overview_polyline = subRoutes.getJSONObject("overview_polyline");
+                            List<LatLng> points = decodePolyLine(overview_polyline.getString("points"));
+                            PolylineOptions polylineOptions = new PolylineOptions().
+                                    geodesic(true).
+                                    color(Color.RED).
+                                    width(10).zIndex(999999999.0f);
+
+                            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                            for (int i = 0; i < points.size(); i++){
+                                builder.include(points.get(i));
+                                polylineOptions.add(points.get(i));
+                            }
+                            PickDesBounds = builder.build();
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(PickDesBounds, getHeightWidth("w"), 500, 100));
+
+                            polylinePaths.add(mMap.addPolyline(polylineOptions));
+
+                        }else{
+                            Toast.makeText(MapActivity.this, status, Toast.LENGTH_SHORT).show();
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    hideProgressDialog();
+                    Log.e("ReqErr", String.valueOf(error));
+                }
+            });
+            stringReqData.setRetryPolicy(new DefaultRetryPolicy(2000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+            directionAPIReq.add(stringReqData);
+        }
+    }
+
+    private void resetDirection(){
+        if(polylinePaths != null){
+            for (Polyline polyline:polylinePaths ) {
+                polyline.remove();
+            }
+            PickDesBounds = null;
+        }
+    }
+
+    private List<LatLng> decodePolyLine(final String poly) {
+        int len = poly.length();
+        int index = 0;
+        List<LatLng> decoded = new ArrayList<LatLng>();
+        int lat = 0;
+        int lng = 0;
+
+        while (index < len) {
+            int b;
+            int shift = 0;
+            int result = 0;
+            do {
+                b = poly.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = poly.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            decoded.add(new LatLng(
+                    lat / 100000d, lng / 100000d
+            ));
+        }
+
+        return decoded;
+    }
+
+    private boolean isGPSEnabled(){
+        if(locationManager == null){
+            locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        }
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+
+    private void enableGPS(){
+        Intent sett_i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        sett_i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(sett_i);
+    }
+
+    @Override
+    public void onClick(View v) {
+        int getId = v.getId();
+        switch (getId) {
+            case R.id.navMenuIcon:
+                if(reqSendParcel){
+                    resetReqSendParcel();
+                }else{
+                    if (drawerState) {
+                        drawer_layout.closeDrawer(Gravity.START);
+                    } else {
+                        drawer_layout.openDrawer(Gravity.START);
+                    }
+                }
+                break;
+            case R.id.setCurLocBtn:
+                if(!setMapCameraBound()){
+                    getDeviceLocation(true);
+                }
+                //showCurrentPlace();
+                break;
+            case R.id.sendBtn:
+                dispatchTakePictureIntent();
+                break;
+            case R.id.sendReqBtn:
+                final Dialog dialog = new Dialog(this);
+                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                dialog.setCancelable(false);
+                dialog.setContentView(R.layout.confirm_dialog);
+                TextView msg = (TextView) dialog.findViewById(R.id.msgCon);
+                msg.setText(R.string.confirm_req_msg);
+                LinearLayout btnsCon = (LinearLayout) dialog.findViewById(R.id.btnsCon);
+                LinearLayout cancelBtn = (LinearLayout) dialog.findViewById(R.id.cancelBtn);
+                for(int i=0; i<btnsCon.getChildCount(); i++){
+                    LinearLayout selectBtn = (LinearLayout) btnsCon.getChildAt(i);
+                    selectBtn.setOnTouchListener(new View.OnTouchListener() {
+                        @Override
+                        public boolean onTouch(View v, MotionEvent event) {
+                            LinearLayout vLL = (LinearLayout) v;
+                            TextView TV = (TextView) vLL.getChildAt(0);
+                            btnEventEffRounded(event, v, TV);
+                            return false;
+                        }
+                    });
+                }
+                cancelBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
+                break;
+            case R.id.pickLocCurTV:
+                placeAutoCompleteFrag(PLACE_AUTOCOMPLETE_CURRENT_REQUEST_CODE);
+                break;
+            case R.id.pickLocDesTV:
+                placeAutoCompleteFrag(PLACE_AUTOCOMPLETE_DESTINATION_REQUEST_CODE);
+                break;
+            case R.id.pickLocClearBtn:
+                resetTVCurLoc();
+                break;
+            case R.id.desLocClearBtn:
+                resetTVDesLoc();
+                break;
+            case R.id.curPlaceSetS:
+                if(!curLocation.isEmpty()){
+                    resetTVCurLoc();
+                    setTVCurLoc(curLocation, curLocLL, true);
+                }
+                break;
+            case R.id.logoutBtn:
+                confirmDialog();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void dispatchTakePictureIntent() {
+        if(pickLocMarker != null && desLocMarker != null){
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setCancelable(false);
+            builder.setMessage("Take a picture of your parcel!");
+            builder.setPositiveButton("Take Picture", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.dismiss();
+                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                    }
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.dismiss();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+        }else{
+            Toast.makeText(this, "Please select origin and destination location!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void confirmDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(false);
+        builder.setMessage("Are you sure! You want to Logout!");
+        builder.setPositiveButton("Logout", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                signOut();
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void placeAutoCompleteFrag(int requestCode){
+        Intent des_intent = null;
+        try {
+            AutocompleteFilter typeFilter = new AutocompleteFilter.Builder()
+                    .setCountry("PK")
+                    .build();
+            des_intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY).setFilter(typeFilter).build(this);
+        } catch (GooglePlayServicesRepairableException e) {
+            e.printStackTrace();
+        } catch (GooglePlayServicesNotAvailableException e) {
+            e.printStackTrace();
+        }
+        startActivityForResult(des_intent, requestCode);
+    }
+
+    private void vMarkerVIV(boolean visible){
+        if(visible){
+            for(Marker vMarker: vehicleMarkers){
+                vMarker.setVisible(true);
+            }
+        }else{
+            for(Marker vMarker: vehicleMarkers){
+                vMarker.setVisible(false);
+            }
+        }
+    }
+
+    private boolean setMapCameraBound(){
+        if(pickLocMarker != null && desLocMarker != null){
+            if(PickDesBounds != null){
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(PickDesBounds, getHeightWidth("w"), 500, 100));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void resetMapCameraBound(){
+        if(pickLocMarker != null){
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pickLocMarker.getPosition(), 15.0f));
+        }else if(desLocMarker != null){
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(desLocMarker.getPosition(), 15.0f));
+        }else if(curLocLL != null){
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(curLocLL, 15.0f));
+        }
+        vMarkerVIV(true);
+        resetDirection();
+    }
+
+    private void setTVCurLoc(String placeName, LatLng placeLL, boolean move){
+        pickLocCurTV.setText(placeName);
+        pickLocCurTV.setTextColor(Color.parseColor("#333333"));
+        mMap.setMyLocationEnabled(false);
+        if(pickLocMarker != null){
+            pickLocMarker.setPosition(placeLL);
+        }else{
+            pickLocMarker = mMap.addMarker(new MarkerOptions().position(placeLL).icon(BitmapDescriptorFactory.fromResource(R.drawable.top_car)).flat(true).anchor(0.5f, 0.5f));
+            pickLocMarker.setZIndex(99.0f);
+        }
+        if(move){
+            if(!setMapCameraBound()){
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(placeLL, 15.0f));
+            }
+        }
+        showDirection();
+    }
+
+    private void setTVDesLoc(String placeName, LatLng placeLL){
+        pickLocDesTV.setText(placeName);
+        pickLocDesTV.setTextColor(Color.parseColor("#333333"));
+        if(desLocMarker != null){
+            desLocMarker.setPosition(placeLL);
+        }else{
+            desLocMarker = mMap.addMarker(new MarkerOptions().position(placeLL));
+            desLocMarker.setZIndex(99.0f);
+        }
+        if(!setMapCameraBound()){
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(placeLL, 15.0f));
+        }
+        showDirection();
+    }
+
+    private void resetTVCurLoc(){
+        pickLocCurTV.setText(pickLocHint);
+        pickLocCurTV.setTextColor(Color.parseColor("#66000000"));
+        pickCurLocation = "";
+        if(pickLocMarker != null){
+            mMap.setMyLocationEnabled(true);
+            pickLocMarker.remove();
+            pickLocMarker = null;
+        }
+        resetMapCameraBound();
+    }
+
+    private void resetTVDesLoc(){
+        pickLocDesTV.setText(desLocHint);
+        pickLocDesTV.setTextColor(Color.parseColor("#66000000"));
+        pickDesLocation = "";
+        if(desLocMarker != null){
+            desLocMarker.remove();
+            desLocMarker = null;
+        }
+        resetMapCameraBound();
+    }
+
+    public static float pxFromDp(final Context context, final float dp) {
+        return dp * context.getResources().getDisplayMetrics().density;
+    }
+
+    private int getHeightWidth(String arg){
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        if(arg.equals("h")){
+            return displayMetrics.heightPixels;
+        }else if (arg.equals("w")){
+            return displayMetrics.widthPixels;
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        int getId = v.getId();
+        switch (getId) {
+            case R.id.sendBtn:
+                btnEventEff(event, sendBtn, sendBtnText);
+                break;
+            case R.id.sendReqBtn:
+                btnEventEffRounded(event, sendReqBtn, sendReqBtnText);
+                break;
+            /*case R.id.getARideBtn:
+                btnEventEff(event, getARideBtn, getARideBtnText);
+                break;*/
+            default:
+                break;
+        }
+        return false;
+    }
+
+    private void menuOpenBtn() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            navMenuIcon.setBackgroundResource(R.drawable.ic_menu_animatable);
+            AnimatedVectorDrawable anim = (AnimatedVectorDrawable) navMenuIcon.getBackground();
+            anim.start();
+        }
+        drawerState = true;
+    }
+
+    private void menuCloseBtn() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            navMenuIcon.setBackgroundResource(R.drawable.ic_back_animatable);
+            AnimatedVectorDrawable anim = (AnimatedVectorDrawable) navMenuIcon.getBackground();
+            anim.start();
+        }
+        drawerState = false;
+    }
+
+    public void btnEventEff(MotionEvent event, View v, TextView tv) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            v.setBackgroundResource(R.color.colorPrimary);
+            tv.setTextColor(Color.parseColor("#ffffff"));
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            v.setBackgroundResource(R.color.colorAccent);
+            tv.setTextColor(Color.parseColor("#333333"));
+        }
+    }
+
+    public void btnEventEffRounded(MotionEvent event, View v, TextView tv) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            v.setBackgroundResource(R.drawable.bg_acc_rounded_inverse);
+            tv.setTextColor(Color.parseColor("#ffffff"));
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            v.setBackgroundResource(R.drawable.bg_acc_rounded);
+            tv.setTextColor(Color.parseColor("#333333"));
+        }
+    }
+
+    public void animateMarker(final Marker marker, final LatLng toPosition,
+                              final boolean hideMarker) {
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        Projection proj = mMap.getProjection();
+        Point startPoint = proj.toScreenLocation(marker.getPosition());
+        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+        final long duration = 500;
+
+        final Interpolator interpolator = new LinearInterpolator();
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = interpolator.getInterpolation((float) elapsed
+                        / duration);
+                double lng = t * toPosition.longitude + (1 - t)
+                        * startLatLng.longitude;
+                double lat = t * toPosition.latitude + (1 - t)
+                        * startLatLng.latitude;
+                marker.setPosition(new LatLng(lat, lng));
+
+                if (t < 1.0) {
+                    // Post again 16ms later.
+                    handler.postDelayed(this, 16);
+                } else {
+                    if (hideMarker) {
+                        marker.setVisible(false);
+                    } else {
+                        marker.setVisible(true);
+                    }
+                }
+            }
+        });
+    }
+
+    private void resetReqSendParcel(){
+        reqSendParcel = false;
+        RelativeLayout.LayoutParams h_layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
+        h_layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        estCon.setLayoutParams(h_layoutParams);
+        sendBtn.setVisibility(View.VISIBLE);
+        selImgByteArray = null;
+        drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        navMenuIcon.setBackgroundResource(R.drawable.ic_menu_animatable);
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        navMenuIcon.setLayoutParams(layoutParams);
+    }
+
+    private boolean verCheck() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+            return true;
+        return false;
+    }
+
+    public boolean permissionCheck() {
+        if (verCheck()) {
+            int hasFineLocationPermission = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+            int hasCoarseLocationPermission = checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION);
+            if (hasFineLocationPermission != PackageManager.PERMISSION_GRANTED || hasCoarseLocationPermission != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void setPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERM_REQUEST_LOCATION);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERM_REQUEST_LOCATION:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    clientConnect();
+                    Toast.makeText(MapActivity.this, "Location Permission Access", Toast.LENGTH_SHORT)
+                            .show();
+                } else {
+                    setPermission();
+                    Toast.makeText(MapActivity.this, "Location Permission Denied", Toast.LENGTH_SHORT)
+                            .show();
+                }
+
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PLACE_AUTOCOMPLETE_CURRENT_REQUEST_CODE || requestCode == PLACE_AUTOCOMPLETE_DESTINATION_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlaceAutocomplete.getPlace(this, data);
+                if(requestCode == PLACE_AUTOCOMPLETE_CURRENT_REQUEST_CODE){
+                    setTVCurLoc(place.getName().toString(), place.getLatLng(), true);
+                }else if(requestCode == PLACE_AUTOCOMPLETE_DESTINATION_REQUEST_CODE){
+                    setTVDesLoc(place.getName().toString(), place.getLatLng());
+                }
+
+            }/* else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
+                Status status = PlaceAutocomplete.getStatus(this, data);
+                Log.i("PlaceAutoCompleteStatus", status.getStatusMessage());
+
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.i("PlaceAutoCompleteStatus", "Request Cancel");
+            }*/
+        }else if(requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK){
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            if(imageBitmap != null){
+                reqSendParcel = true;
+                drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                navMenuIcon.setBackgroundResource(R.drawable.ic_action_back);
+                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams((int)pxFromDp(this,24f), (int)pxFromDp(this, 24f));
+                navMenuIcon.setLayoutParams(layoutParams);
+                RelativeLayout.LayoutParams h_layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                h_layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                estCon.setLayoutParams(h_layoutParams);
+                sendBtn.setVisibility(View.GONE);
+                //here the image set to stream
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                selImgByteArray = stream.toByteArray();
+            }
+        }
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        switch(event.sensor.getType()){
+            case Sensor.TYPE_ACCELEROMETER:
+                System.arraycopy(event.values, 0, valuesAccelerometer, 0, 3);
+                break;
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                System.arraycopy(event.values, 0, valuesMagneticField, 0, 3);
+                break;
+        }
+
+        boolean success = SensorManager.getRotationMatrix(
+                matrixR,
+                matrixI,
+                valuesAccelerometer,
+                valuesMagneticField);
+        if(success){
+            SensorManager.getOrientation(matrixR, matrixValues);
+
+            double azimuth = Math.toDegrees(matrixValues[0]);
+
+            if(pickLocMarker != null){
+                pickLocMarker.setRotation((float) azimuth);
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    private void showProgressDialog(){
+        progressDialog.setTitle("Please wait...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+    }
+
+    private void hideProgressDialog(){
+        progressDialog.dismiss();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode==KeyEvent.KEYCODE_BACK && reqSendParcel) {
+            resetReqSendParcel();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+}

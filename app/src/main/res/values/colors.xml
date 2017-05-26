@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#333333</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#ffd51e</color>
+    <color name="colorAccentDark">#f1c91d</color>
+    <color name="colorFontLight2">#ffffff</color>
+    <color name="colorFontLight">#929292</color>
+    <color name="colorAccentClone">#ffffff</color>
+    <color name="black_overlay">#66000000</color>
+    <color name="YellowColor">#ffd51e</color>
+    <color name="border_bottom_color">#cecece</color>
+    <color name="app_background">#ffffff</color>
+    <color name="hintColor">#929292</color>
+    <color name="buttonColor">#ffd41e</color>
+    <color name="foreBackground">#eeeeee</color>
+
+</resources>

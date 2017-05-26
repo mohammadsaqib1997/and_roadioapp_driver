@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:background="@color/colorFontLight2"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@color/black_overlay" />
+    <LinearLayout
+        android:paddingBottom="20dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:layout_marginTop="-40dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/circle_img"
+            android:id="@+id/userProfileImg"
+            android:layout_width="80dp"
+            android:layout_height="80dp" />
+
+        <TextView
+            android:id="@+id/userNameSBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:text="John Doe"
+            android:textSize="16sp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textColor="@color/colorPrimaryDark" />
+    </LinearLayout>
+    <ScrollView
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+        <LinearLayout
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:padding="15dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:src="@drawable/ic_location_pin"
+                    android:layout_width="19dp"
+                    android:layout_height="19dp" />
+                <TextView
+                    android:layout_marginLeft="15dp"
+                    android:textSize="16dp"
+                    android:textColor="@color/colorPrimary"
+                    android:text="Payment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/requestBtn"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:padding="15dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:src="@drawable/ic_location_pin"
+                    android:layout_width="19dp"
+                    android:layout_height="19dp" />
+                <TextView
+                    android:layout_marginLeft="15dp"
+                    android:textSize="16dp"
+                    android:textColor="@color/colorPrimary"
+                    android:text="Requests"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+            <LinearLayout
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:padding="15dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:src="@drawable/ic_location_pin"
+                    android:layout_width="19dp"
+                    android:layout_height="19dp" />
+                <TextView
+                    android:layout_marginLeft="15dp"
+                    android:textSize="16dp"
+                    android:textColor="@color/colorPrimary"
+                    android:text="Free Rides"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+            <LinearLayout
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:padding="15dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:src="@drawable/ic_location_pin"
+                    android:layout_width="19dp"
+                    android:layout_height="19dp" />
+                <TextView
+                    android:layout_marginLeft="15dp"
+                    android:textSize="16dp"
+                    android:textColor="@color/colorPrimary"
+                    android:text="News"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+            <LinearLayout
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:padding="15dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:src="@drawable/ic_location_pin"
+                    android:layout_width="19dp"
+                    android:layout_height="19dp" />
+                <TextView
+                    android:layout_marginLeft="15dp"
+                    android:textSize="16dp"
+                    android:textColor="@color/colorPrimary"
+                    android:text="Help"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+    <LinearLayout
+        android:background="@color/black_overlay"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="1dp" />
+    <LinearLayout
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/logoutBtn"
+            android:layout_margin="15dp"
+            android:src="@drawable/ic_logout"
+            android:layout_width="19dp"
+            android:layout_height="19dp" />
+        <LinearLayout
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+        <ImageView
+            android:layout_margin="15dp"
+            android:src="@drawable/ic_setting"
+            android:layout_width="19dp"
+            android:layout_height="19dp" />
+    </LinearLayout>
+</LinearLayout>

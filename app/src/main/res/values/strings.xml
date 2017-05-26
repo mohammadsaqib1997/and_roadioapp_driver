@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">RoadioApp</string>
+    <!--<string name="app_api_domain">http://178.62.103.189/api/index.php/</string>-->
+    <string name="app_api_domain">http://107.170.74.248:4000/api</string>
+
+    <string name="title_activity_sign_up">SignUp</string>
+
+    <string name="confirmation_msg_1">
+        We have sent you an SMS with a code to the number above.
+    </string>
+    <string name="confirmation_msg_2">
+        To complete your phone number verification, please enter the 6-digit activation code.
+    </string>
+    <string name="coming_soon_page_str">
+        We have got your number we will contact you shortly to proceed with your application.
+    </string>
+    <string name="title_activity_map">Map</string>
+
+    <string name="agreementText">By clicking sign up you agree to our\n Terms &amp; Conditions and Privacy Policy</string>
+    <string name="basicInfo_title">Basic Information</string>
+    <string name="forgotPassword">Forgot your Password?</string>
+    <string name="vehicle_prompt">Select Vehicle</string>
+    <string-array name="vehicles">
+        <item>Select Vehicle</item>
+        <item>Bike</item>
+        <item>Car</item>
+        <item>Pickup</item>
+        <item>Truck</item>
+    </string-array>
+
+    <string name="google_app_key">AIzaSyCNtzqLNFY9xNwnvoYgqh48zDtQ1s7AKbg</string>
+    <string name="google_url_key">AIzaSyADoSPA53om6p0nZnhYmpUnNdg8NFPqzQA</string>
+    <string name="title_activity_request_recyle_view">Requests</string>
+
+</resources>

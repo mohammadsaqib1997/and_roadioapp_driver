@@ -88,10 +88,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roadioapp.roadioapp.ActivityConstants.MapActivityConstants;
+import com.roadioapp.roadioapp.mObjects.AuthObject;
 import com.roadioapp.roadioapp.mObjects.ButtonEffects;
 import com.roadioapp.roadioapp.mObjects.GPSObject;
 import com.roadioapp.roadioapp.mObjects.MapObject;
 import com.roadioapp.roadioapp.mObjects.PermissionCheckObj;
+import com.roadioapp.roadioapp.mObjects.UserLocationObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -125,22 +127,20 @@ public class MapActivity extends AppCompatActivity implements
     ImageView navMenuIcon, logOutBtn;
     RelativeLayout mainActCon;
     LinearLayout curLocCont, setCurLocBtn, bottomBtnCon, requestBtn;
-    Timer timer;
+    /*Timer timer;
     TimerTask timerTask;
-    final Handler handler = new Handler();
-
-    private ProgressDialog progressDialog;
+    final Handler handler = new Handler();*/
 
     //Storage Variables
     LatLng curLocLL;
     boolean firstCamMov = true;
     double azimuth = 0f;
 
-    //Firebase Variables
+    /*//Firebase Variables
     private FirebaseAuth mAuth;
     private String authUid = "", userVehicle = "";
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private DatabaseReference mDatabase, onlineDrivers, userInfo;
+    private DatabaseReference mDatabase, onlineDrivers, userInfo;*/
 
     private static boolean appCheckTer = false;
 
@@ -151,6 +151,8 @@ public class MapActivity extends AppCompatActivity implements
 
     MapActivityConstants activityConstants;
     MapObject mapObj;
+    AuthObject authObj;
+    UserLocationObject userLocationObj;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,15 +193,7 @@ public class MapActivity extends AppCompatActivity implements
         mapObj.createLocationRequest();
         mapObj.buildLocationSettingsRequest();
 
-        mAuth.addAuthStateListener(mAuthListener);
         mapObj.mGoogleApiClient.connect();
-    }
-
-    private void signOut() {
-        mAuth.signOut();
-        onlineDrivers.child(authUid).removeValue();
-        finish();
-        startActivity(new Intent(MapActivity.this, MainActivity.class));
     }
 
     @Override
@@ -209,8 +203,8 @@ public class MapActivity extends AppCompatActivity implements
             permissionCheckObj.setPermission();
         } else {
             if (mapObj.isConnected()) {
-                startLocationUpdates();
-                startTimer();
+                userLocationObj.startLocationUpdates();
+                userLocationObj.startTimer();
             }
         }
     }
@@ -219,16 +213,18 @@ public class MapActivity extends AppCompatActivity implements
     protected void onDestroy() {
         super.onDestroy();
         Log.e("AppStatus", "App Terminated");
-        mAuth.removeAuthStateListener(mAuthListener);
-        stopLocationUpdates();
-        stopTimer();
+        //mAuth.removeAuthStateListener(mAuthListener);
+        userLocationObj.stopLocationUpdates();
+        userLocationObj.stopTimer();
         mapObj.mGoogleApiClient.disconnect();
     }
 
-    public void startTimer() {
-        timer = new Timer();
-        initializeTask();
-        timer.schedule(timerTask, 2000, 2000);
+    /*public void startTimer() {
+        if(authObj.isLoginUser()){
+            timer = new Timer();
+            initializeTask();
+            timer.schedule(timerTask, 2000, 2000);
+        }
     }
 
     public void stopTimer() {
@@ -246,12 +242,12 @@ public class MapActivity extends AppCompatActivity implements
                     @Override
                     public void run() {
                         if (curLocLL != null && !userVehicle.equals("")) {
-                            DatabaseReference userOnline = onlineDrivers.child(authUid);
+                            DatabaseReference userOnline = onlineDrivers.child(authObj.authUid);
                             Map<String, Object> dataMap = new HashMap<String, Object>();
                             dataMap.put("lat", curLocLL.latitude);
                             dataMap.put("lng", curLocLL.longitude);
                             dataMap.put("direction", (float) azimuth);
-                            dataMap.put("uid", authUid);
+                            dataMap.put("uid", authObj.authUid);
                             dataMap.put("vehicle", userVehicle);
                             userOnline.setValue(dataMap);
                         }
@@ -259,7 +255,7 @@ public class MapActivity extends AppCompatActivity implements
                 });
             }
         };
-    }
+    }*/
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -390,8 +386,8 @@ public class MapActivity extends AppCompatActivity implements
         builder.setMessage("Are you sure! You want to Logout!");
         builder.setPositiveButton("Logout", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                signOut();
                 dialog.dismiss();
+                authObj.signOut();
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -437,26 +433,10 @@ public class MapActivity extends AppCompatActivity implements
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         if (!mapObj.mRequestingLocationUpdates) {
-            startLocationUpdates();
-            startTimer();
+            userLocationObj.startLocationUpdates();
+            userLocationObj.startTimer();
         }
 
-    }
-
-    protected void startLocationUpdates() {
-        if (permissionCheckObj.permissionCheck()) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mapObj.mGoogleApiClient, mapObj.mLocationRequest, this);
-            mapObj.mRequestingLocationUpdates = true;
-        }
-
-    }
-
-    protected void stopLocationUpdates() {
-        if (mapObj.mRequestingLocationUpdates) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(
-                    mapObj.mGoogleApiClient, this);
-            mapObj.mRequestingLocationUpdates = false;
-        }
     }
 
     @Override
@@ -476,24 +456,15 @@ public class MapActivity extends AppCompatActivity implements
 
     }
 
-    private void showProgressDialog() {
-        progressDialog.setTitle("Please wait...");
-        progressDialog.setCancelable(false);
-        progressDialog.show();
-    }
-
-    private void hideProgressDialog() {
-        progressDialog.dismiss();
-    }
-
     private void setProperties() {
         buttonEffectsObj = new ButtonEffects(this);
         gpsObj = new GPSObject(this);
         activityConstants = new MapActivityConstants(this);
         mapObj = new MapObject(this);
+        authObj = new AuthObject(this);
 
         permissionCheckObj = new PermissionCheckObj(this, activityConstants);
-
+        userLocationObj = new UserLocationObject(authObj, permissionCheckObj, mapObj, this);
 
         navMenuIcon = (ImageView) findViewById(R.id.navMenuIcon);
         drawer_layout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -505,7 +476,6 @@ public class MapActivity extends AppCompatActivity implements
 
         requestBtn = (LinearLayout) findViewById(R.id.requestBtn);
         buttonEffectsObj.btnEventEff(requestBtn);
-        //requestBtnText = (TextView) requestBtn.getChildAt(0);
 
         curLocCont = (LinearLayout) findViewById(R.id.curLocCont);
         setCurLocBtn = (LinearLayout) findViewById(R.id.setCurLocBtn);
@@ -513,18 +483,18 @@ public class MapActivity extends AppCompatActivity implements
         bottomBtnCon = (LinearLayout) findViewById(R.id.bottomBtnCon);
 
         // here instances assign
-        mAuth = FirebaseAuth.getInstance();
+        /*mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                /*if (firebaseAuth.getCurrentUser() != null) {
+                *//*if (firebaseAuth.getCurrentUser() != null) {
                     FirebaseUser user = firebaseAuth.getCurrentUser();
                     authUid = user.getUid();
 
-                }*/
+                }*//*
             }
-        };
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        };*/
+        /*mDatabase = FirebaseDatabase.getInstance().getReference();
         userInfo = mDatabase.child("users");
         onlineDrivers = mDatabase.child("online_drivers");
 
@@ -542,11 +512,9 @@ public class MapActivity extends AppCompatActivity implements
 
                 }
             });
-        }
+        }*/
 
-        onlineDrivers.child(authUid).onDisconnect().removeValue();
-
-        progressDialog = new ProgressDialog(this);
+        //onlineDrivers.child(authUid).onDisconnect().removeValue();
     }
 
     @Override

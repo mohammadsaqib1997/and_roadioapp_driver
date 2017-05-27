@@ -65,7 +65,7 @@ public class MapObject {
         return mGoogleApiClient.isConnected() && !mRequestingLocationUpdates;
     }
 
-    public void animateMarker(final Marker marker, final LatLng toPosition,
+    /*public void animateMarker(final Marker marker, final LatLng toPosition,
                               final boolean hideMarker) {
         final Handler handler = new Handler();
         final long start = SystemClock.uptimeMillis();
@@ -100,7 +100,7 @@ public class MapObject {
                 }
             }
         });
-    }
+    }*/
 
 
 }

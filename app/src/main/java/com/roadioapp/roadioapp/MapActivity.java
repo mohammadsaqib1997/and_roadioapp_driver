@@ -87,6 +87,11 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.roadioapp.roadioapp.ActivityConstants.MapActivityConstants;
+import com.roadioapp.roadioapp.mObjects.ButtonEffects;
+import com.roadioapp.roadioapp.mObjects.GPSObject;
+import com.roadioapp.roadioapp.mObjects.MapObject;
+import com.roadioapp.roadioapp.mObjects.PermissionCheckObj;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -101,22 +106,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MapActivity extends AppCompatActivity implements
-        OnMapReadyCallback, View.OnClickListener, View.OnTouchListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+        OnMapReadyCallback, View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    private GoogleApiClient mGoogleApiClient;
-
-    LocationRequest mLocationRequest;
-    LocationSettingsRequest mLocationSettingsRequest;
+    //private GoogleApiClient mGoogleApiClient;
     Location mCurrentLocation;
-    Boolean mRequestingLocationUpdates;
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
-    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
-            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
     private GoogleMap mMap;
     private MapFragment mapFragment;
     private LatLng karachi;
-    final private int PERM_REQUEST_LOCATION = 100;
     private Location mLastKnownLocation;
     LocationManager locationManager;
 
@@ -128,12 +125,9 @@ public class MapActivity extends AppCompatActivity implements
     ImageView navMenuIcon, logOutBtn;
     RelativeLayout mainActCon;
     LinearLayout curLocCont, setCurLocBtn, bottomBtnCon, requestBtn;
-    TextView requestBtnText;
     Timer timer;
     TimerTask timerTask;
     final Handler handler = new Handler();
-
-    RequestQueue geocodingAPIReq, directionAPIReq;
 
     private ProgressDialog progressDialog;
 
@@ -149,6 +143,14 @@ public class MapActivity extends AppCompatActivity implements
     private DatabaseReference mDatabase, onlineDrivers, userInfo;
 
     private static boolean appCheckTer = false;
+
+    //Objects here
+    PermissionCheckObj permissionCheckObj;
+    ButtonEffects buttonEffectsObj;
+    GPSObject gpsObj;
+
+    MapActivityConstants activityConstants;
+    MapObject mapObj;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -181,17 +183,16 @@ public class MapActivity extends AppCompatActivity implements
         });
 
         requestBtn.setOnClickListener(this);
-        requestBtn.setOnTouchListener(this);
         logOutBtn.setOnClickListener(this);
 
         setCurLocBtn.setOnClickListener(this);
 
-        buildGoogleApiClient();
-        createLocationRequest();
-        buildLocationSettingsRequest();
+        mapObj.buildGoogleApiClient();
+        mapObj.createLocationRequest();
+        mapObj.buildLocationSettingsRequest();
 
         mAuth.addAuthStateListener(mAuthListener);
-        mGoogleApiClient.connect();
+        mapObj.mGoogleApiClient.connect();
     }
 
     private void signOut() {
@@ -201,23 +202,13 @@ public class MapActivity extends AppCompatActivity implements
         startActivity(new Intent(MapActivity.this, MainActivity.class));
     }
 
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
-        if (!permissionCheck()) {
-            setPermission();
+        if (!permissionCheckObj.permissionCheck()) {
+            permissionCheckObj.setPermission();
         } else {
-            if (mGoogleApiClient.isConnected() && !mRequestingLocationUpdates) {
+            if (mapObj.isConnected()) {
                 startLocationUpdates();
                 startTimer();
             }
@@ -231,7 +222,7 @@ public class MapActivity extends AppCompatActivity implements
         mAuth.removeAuthStateListener(mAuthListener);
         stopLocationUpdates();
         stopTimer();
-        mGoogleApiClient.disconnect();
+        mapObj.mGoogleApiClient.disconnect();
     }
 
     public void startTimer() {
@@ -317,9 +308,9 @@ public class MapActivity extends AppCompatActivity implements
 
     private void getDeviceLocation(boolean anim, final boolean defLatLng, final Location curLocation, boolean move) {
 
-        if (permissionCheck()) {
-            if (isGPSEnabled()) {
-                mLastKnownLocation = (curLocation != null) ? curLocation : LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (permissionCheckObj.permissionCheck()) {
+            if (gpsObj.isGPSEnabled()) {
+                mLastKnownLocation = (curLocation != null) ? curLocation : LocationServices.FusedLocationApi.getLastLocation(mapObj.mGoogleApiClient);
                 if (mLastKnownLocation != null) {
                     curLocLL = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
                     if (!mMap.isMyLocationEnabled()) {
@@ -343,10 +334,10 @@ public class MapActivity extends AppCompatActivity implements
                     }
                 }
             } else {
-                enableGPS();
+                gpsObj.enableGPS();
             }
         } else {
-            showPermissionErr();
+            permissionCheckObj.showPermissionErr();
         }
     }
 
@@ -366,19 +357,6 @@ public class MapActivity extends AppCompatActivity implements
             }
         }
         userCamMove = uMoveCam;
-    }
-
-    private boolean isGPSEnabled() {
-        if (locationManager == null) {
-            locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        }
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-    }
-
-    private void enableGPS() {
-        Intent sett_i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-        sett_i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(sett_i);
     }
 
     @Override
@@ -426,10 +404,6 @@ public class MapActivity extends AppCompatActivity implements
         dialog.show();
     }
 
-    public static float pxFromDp(final Context context, final float dp) {
-        return dp * context.getResources().getDisplayMetrics().density;
-    }
-
     private int getHeightWidth(String arg) {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -442,120 +416,19 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        int getId = v.getId();
-        switch (getId) {
-            case R.id.requestBtn:
-                btnEventEff(event, requestBtn, requestBtnText);
-                break;
-            default:
-                break;
-        }
-        return false;
-    }
-
-    public void btnEventEff(MotionEvent event, View v, TextView tv) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            v.setBackgroundResource(R.color.colorPrimary);
-            tv.setTextColor(Color.parseColor("#ffffff"));
-        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            v.setBackgroundResource(R.color.colorAccent);
-            tv.setTextColor(Color.parseColor("#333333"));
-        }
-    }
-
-    public void btnEventEffRounded(MotionEvent event, View v, TextView tv) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            v.setBackgroundResource(R.drawable.bg_acc_rounded_inverse);
-            tv.setTextColor(Color.parseColor("#ffffff"));
-        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            v.setBackgroundResource(R.drawable.bg_acc_rounded);
-            tv.setTextColor(Color.parseColor("#333333"));
-        }
-    }
-
-    public void animateMarker(final Marker marker, final LatLng toPosition,
-                              final boolean hideMarker) {
-        final Handler handler = new Handler();
-        final long start = SystemClock.uptimeMillis();
-        Projection proj = mMap.getProjection();
-        Point startPoint = proj.toScreenLocation(marker.getPosition());
-        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
-        final long duration = 500;
-
-        final Interpolator interpolator = new LinearInterpolator();
-
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                long elapsed = SystemClock.uptimeMillis() - start;
-                float t = interpolator.getInterpolation((float) elapsed
-                        / duration);
-                double lng = t * toPosition.longitude + (1 - t)
-                        * startLatLng.longitude;
-                double lat = t * toPosition.latitude + (1 - t)
-                        * startLatLng.latitude;
-                marker.setPosition(new LatLng(lat, lng));
-
-                if (t < 1.0) {
-                    // Post again 16ms later.
-                    handler.postDelayed(this, 16);
-                } else {
-                    if (hideMarker) {
-                        marker.setVisible(false);
-                    } else {
-                        marker.setVisible(true);
-                    }
-                }
-            }
-        });
-    }
-
-    private boolean verCheck() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
-            return true;
-        return false;
-    }
-
-    public boolean permissionCheck() {
-        if (verCheck()) {
-            int hasFineLocationPermission = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
-            int hasCoarseLocationPermission = checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION);
-            if (hasFineLocationPermission != PackageManager.PERMISSION_GRANTED || hasCoarseLocationPermission != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void setPermission() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION},
-                    PERM_REQUEST_LOCATION);
-        }
-    }
-
-    private void showPermissionErr() {
-        Toast.makeText(this, "Your mobile not allowed this Permission!", Toast.LENGTH_LONG).show();
-    }
-
-    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case PERM_REQUEST_LOCATION:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                    mGoogleApiClient.connect();
-                    Toast.makeText(MapActivity.this, "Location Permission Access", Toast.LENGTH_SHORT)
-                            .show();
-                } else {
-                    setPermission();
-                    Toast.makeText(MapActivity.this, "Location Permission Denied", Toast.LENGTH_SHORT)
-                            .show();
-                }
-
-                break;
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == activityConstants.PERM_REQUEST_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                mapObj.mGoogleApiClient.connect();
+                Toast.makeText(MapActivity.this, "Location Permission Access", Toast.LENGTH_SHORT)
+                        .show();
+            } else {
+                permissionCheckObj.setPermission();
+                Toast.makeText(MapActivity.this, "Location Permission Denied", Toast.LENGTH_SHORT)
+                        .show();
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 
@@ -563,39 +436,26 @@ public class MapActivity extends AppCompatActivity implements
     public void onConnected(@Nullable Bundle bundle) {
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        if (!mRequestingLocationUpdates) {
+        if (!mapObj.mRequestingLocationUpdates) {
             startLocationUpdates();
             startTimer();
         }
 
     }
 
-    protected void createLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
-
-    protected void buildLocationSettingsRequest() {
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
-        builder.addLocationRequest(mLocationRequest);
-        mLocationSettingsRequest = builder.build();
-    }
-
     protected void startLocationUpdates() {
-        if (permissionCheck()) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-            mRequestingLocationUpdates = true;
+        if (permissionCheckObj.permissionCheck()) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mapObj.mGoogleApiClient, mapObj.mLocationRequest, this);
+            mapObj.mRequestingLocationUpdates = true;
         }
 
     }
 
     protected void stopLocationUpdates() {
-        if (mRequestingLocationUpdates) {
+        if (mapObj.mRequestingLocationUpdates) {
             LocationServices.FusedLocationApi.removeLocationUpdates(
-                    mGoogleApiClient, this);
-            mRequestingLocationUpdates = false;
+                    mapObj.mGoogleApiClient, this);
+            mapObj.mRequestingLocationUpdates = false;
         }
     }
 
@@ -627,6 +487,14 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     private void setProperties() {
+        buttonEffectsObj = new ButtonEffects(this);
+        gpsObj = new GPSObject(this);
+        activityConstants = new MapActivityConstants(this);
+        mapObj = new MapObject(this);
+
+        permissionCheckObj = new PermissionCheckObj(this, activityConstants);
+
+
         navMenuIcon = (ImageView) findViewById(R.id.navMenuIcon);
         drawer_layout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
@@ -636,7 +504,8 @@ public class MapActivity extends AppCompatActivity implements
         mainActCon = (RelativeLayout) findViewById(R.id.mainActCon);
 
         requestBtn = (LinearLayout) findViewById(R.id.requestBtn);
-        requestBtnText = (TextView) requestBtn.getChildAt(0);
+        buttonEffectsObj.btnEventEff(requestBtn);
+        //requestBtnText = (TextView) requestBtn.getChildAt(0);
 
         curLocCont = (LinearLayout) findViewById(R.id.curLocCont);
         setCurLocBtn = (LinearLayout) findViewById(R.id.setCurLocBtn);
@@ -677,12 +546,7 @@ public class MapActivity extends AppCompatActivity implements
 
         onlineDrivers.child(authUid).onDisconnect().removeValue();
 
-
-        mRequestingLocationUpdates = false;
         progressDialog = new ProgressDialog(this);
-
-        geocodingAPIReq = Volley.newRequestQueue(this);
-        directionAPIReq = Volley.newRequestQueue(this);
     }
 
     @Override

@@ -25,7 +25,10 @@ public class MapObject {
 
     public GoogleApiClient mGoogleApiClient;
     public LocationRequest mLocationRequest;
+
     public boolean mRequestingLocationUpdates = false;
+    public LatLng uCurrLL;
+    public double azimuth = 0f;
 
     private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2;

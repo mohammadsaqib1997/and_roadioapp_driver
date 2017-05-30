@@ -1,12 +1,16 @@
 package com.roadioapp.roadioapp.mModels;
 
 import android.app.Activity;
+import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.roadioapp.roadioapp.R;
+import com.roadioapp.roadioapp.mInterfaces.DBCallbacks;
+import com.roadioapp.roadioapp.mObjects.AuthObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,16 +21,16 @@ public class UserActiveRequest {
     public String driver_uid, req_id, status;
     public long active_time, complete_time;
 
-    /*private DatabaseReference mDatabase, userActiveRequestCol, userLiveRequestCol;
-    private AuthObj mAuthObj;
-    private String[] statusArr;*/
+    private DatabaseReference mDatabase, userActiveRequestCol, userLiveRequestCol;
+    private AuthObject mAuthObj;
+    private String[] statusArr;
 
     public UserActiveRequest(){
 
     }
 
-    /*public UserActiveRequest(Activity act){
-        mAuthObj = new AuthObj();
+    public UserActiveRequest(Activity act){
+        mAuthObj = new AuthObject();
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         userActiveRequestCol = mDatabase.child("user_active_requests");
@@ -35,7 +39,43 @@ public class UserActiveRequest {
         statusArr = act.getResources().getStringArray(R.array.req_status);
     }
 
-    public void userReqAct(final String req_id, final String driver_uid, final ObjectInterfaces.SimpleCallback callback){
+    public void checkDriverReqActive(String UID, final DBCallbacks.CompleteListener callback){
+        userActiveRequestCol.orderByChild("driver_uid").equalTo(UID).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String sts = "invalid";
+                if(dataSnapshot.exists()){
+                    sts = "exist";
+                }
+                callback.onSuccess(true, sts);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                callback.onSuccess(false, databaseError.getMessage());
+            }
+        });
+    }
+
+    public void getRequestData(final String UID, final DBCallbacks.CompleteDSListener callback){
+        userActiveRequestCol.orderByChild("driver_uid").equalTo(UID).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    callback.onSuccess(true, "", dataSnapshot);
+                }else {
+                    callback.onSuccess(false, "Data Not Found!", null);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                callback.onSuccess(false, databaseError.getMessage(), null);
+            }
+        });
+    }
+
+    /*public void userReqAct(final String req_id, final String driver_uid, final DBCallbacks.CompleteListener callback){
         if(mAuthObj.isLoginUser()){
             userLiveRequestCol.child(mAuthObj.authUid).removeValue(new DatabaseReference.CompletionListener() {
                 @Override

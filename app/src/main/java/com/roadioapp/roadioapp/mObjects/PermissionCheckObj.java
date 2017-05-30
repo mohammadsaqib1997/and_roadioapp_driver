@@ -5,18 +5,18 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.widget.Toast;
 
-import com.roadioapp.roadioapp.ActivityConstants.MapActivityConstants;
+import com.roadioapp.roadioapp.ActivityConstants.ProConstants;
 
 import static android.os.Build.VERSION_CODES.M;
 
 public class PermissionCheckObj {
 
     private Activity activity;
-    private MapActivityConstants act_constants;
+    private ProConstants proConstants;
 
-    public PermissionCheckObj(Activity act, MapActivityConstants constants){
+    public PermissionCheckObj(Activity act){
         this.activity = act;
-        act_constants = constants;
+        this.proConstants = new ProConstants();
     }
 
     public boolean permissionCheck() {
@@ -43,14 +43,14 @@ public class PermissionCheckObj {
     public void setCallPermission(){
         if (verCheck()) {
             activity.requestPermissions(new String[]{android.Manifest.permission.CALL_PHONE},
-                    act_constants.PERM_REQUEST_CALL);
+                    proConstants.PERM_REQUEST_CALL);
         }
     }
 
     public void setPermission() {
         if (verCheck()) {
             activity.requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION},
-                    act_constants.PERM_REQUEST_LOCATION);
+                    proConstants.PERM_REQUEST_LOCATION);
         }
     }
 
@@ -67,7 +67,7 @@ public class PermissionCheckObj {
     public void setStoragePermission(){
         if (verCheck()) {
             activity.requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    act_constants.PERM_REQUEST_STORAGE);
+                    proConstants.PERM_REQUEST_STORAGE);
         }
     }
 

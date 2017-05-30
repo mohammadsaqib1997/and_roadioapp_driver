@@ -50,8 +50,8 @@ public class RequestRecyleView extends AppCompatActivity {
         recyclerView = (RecyclerView)findViewById(R.id.requestsRecyler);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setReverseLayout(true);
-        linearLayoutManager.setStackFromEnd(true);
+        //linearLayoutManager.setReverseLayout(true);
+        //linearLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(linearLayoutManager);
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);

@@ -28,6 +28,22 @@
         <item>Truck</item>
     </string-array>
 
+    <array name="req_status">
+        <item>req.pending</item>
+        <item>req.accept</item>
+        <item>req.active</item>
+        <item>req.complete</item>
+    </array>
+
+    <string name="par_accept">Request Accept</string>
+    <string name="par_pickup">Pickup Parcel</string>
+    <string name="par_deliver">Deliver Parcel</string>
+    <string-array name="parcel_types">
+        <item>@string/par_accept</item>
+        <item>@string/par_pickup</item>
+        <item>@string/par_deliver</item>
+    </string-array>
+
     <string name="google_app_key">AIzaSyCNtzqLNFY9xNwnvoYgqh48zDtQ1s7AKbg</string>
     <string name="google_url_key">AIzaSyADoSPA53om6p0nZnhYmpUnNdg8NFPqzQA</string>
     <string name="title_activity_request_recyle_view">Requests</string>

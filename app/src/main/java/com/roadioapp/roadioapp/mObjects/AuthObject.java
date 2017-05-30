@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 import com.roadioapp.roadioapp.LoginActivity;
 
 public class AuthObject {
@@ -26,6 +27,7 @@ public class AuthObject {
 
     public void signOut(){
         if(isLoginUser()){
+            FirebaseDatabase.getInstance().getReference().child("online_drivers/"+authUid).removeValue();
             mAuth.signOut();
             updateUser();
         }

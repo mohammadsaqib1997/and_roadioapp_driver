@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
         android:name="android.support.multidex.MultiDexApplication"
@@ -54,6 +55,10 @@
 
         <activity
             android:name=".RequestDetailsPopup"
+            android:theme="@style/NoActionBar" />
+
+        <activity
+            android:name=".RequestActiveActivity"
             android:theme="@style/NoActionBar" />
     </application>
 

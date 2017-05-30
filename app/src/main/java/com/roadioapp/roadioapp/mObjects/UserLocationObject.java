@@ -1,11 +1,20 @@
 package com.roadioapp.roadioapp.mObjects;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Handler;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.roadioapp.roadioapp.RequestActiveActivity;
+import com.roadioapp.roadioapp.mInterfaces.DBCallbacks;
+import com.roadioapp.roadioapp.mModels.User;
+import com.roadioapp.roadioapp.mModels.UserActiveRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,25 +27,69 @@ public class UserLocationObject {
     private PermissionCheckObj permissionCheckObj;
     private MapObject mapObj;
     private Activity activity;
+    private DatabaseReference onlineDrivers;
 
     private Timer timer;
     private TimerTask timerTask;
     private final Handler handler = new Handler();
+    private ProgressBarObject progressBarObj;
+
+    private User userModel;
+    private UserActiveRequest userActiveRequestModel;
 
     public UserLocationObject(AuthObject authObj, PermissionCheckObj permissionCheckObj, MapObject mapObj, Activity activity){
         this.activity = activity;
         this.permissionCheckObj = permissionCheckObj;
         this.mapObj = mapObj;
         this.authObj = authObj;
+        progressBarObj = new ProgressBarObject(activity);
+        onlineDrivers = FirebaseDatabase.getInstance().getReference().child("online_drivers");
+        userModel = new User(activity);
+        userActiveRequestModel = new UserActiveRequest(activity);
     }
 
 
     public void startTimer() {
         if(authObj.isLoginUser()){
-            timer = new Timer();
-            initializeTask();
-            timer.schedule(timerTask, 2000, 2000);
+            progressBarObj.showProgressDialog();
+
+            userActiveRequestModel.checkDriverReqActive(authObj.authUid, new DBCallbacks.CompleteListener() {
+                @Override
+                public void onSuccess(boolean status, String msg) {
+                    if(status){
+                        if(msg.equals("exist")){
+                            progressBarObj.hideProgressDialog();
+                            activity.finish();
+                            activity.startActivity(new Intent(activity, RequestActiveActivity.class));
+                        }else{
+                            setOnlineUserCall();
+                        }
+                    }else{
+                        progressBarObj.hideProgressDialog();
+                        Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+
         }
+    }
+
+    public void setOnlineUserCall(){
+        userModel.getVehicleByUID(authObj.authUid, new DBCallbacks.CompleteListener() {
+            @Override
+            public void onSuccess(boolean status, String msg) {
+                progressBarObj.hideProgressDialog();
+                if(status){
+                    timer = new Timer();
+                    initializeTask(msg);
+                    timer.schedule(timerTask, 2000, 2000);
+                }else{
+                    Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        onlineDrivers.child(authObj.authUid).onDisconnect().removeValue();
     }
 
     public void stopTimer() {
@@ -46,23 +99,22 @@ public class UserLocationObject {
         }
     }
 
-    private void initializeTask() {
+    private void initializeTask(final String userVehicle) {
         timerTask = new TimerTask() {
             @Override
             public void run() {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        /*if (curLocLL != null && !userVehicle.equals("")) {
-                            DatabaseReference userOnline = onlineDrivers.child(authObj.authUid);
+                        if (mapObj.uCurrLL != null && !userVehicle.equals("")) {
                             Map<String, Object> dataMap = new HashMap<String, Object>();
-                            dataMap.put("lat", curLocLL.latitude);
-                            dataMap.put("lng", curLocLL.longitude);
-                            dataMap.put("direction", (float) azimuth);
+                            dataMap.put("lat", mapObj.uCurrLL.latitude);
+                            dataMap.put("lng", mapObj.uCurrLL.longitude);
+                            dataMap.put("direction", (float) mapObj.azimuth);
                             dataMap.put("uid", authObj.authUid);
                             dataMap.put("vehicle", userVehicle);
-                            userOnline.setValue(dataMap);
-                        }*/
+                            onlineDrivers.child(authObj.authUid).setValue(dataMap);
+                        }
                     }
                 });
             }

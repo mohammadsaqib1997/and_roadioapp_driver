@@ -254,8 +254,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp" />
             <!--<LinearLayout
+                android:paddingBottom="15dp"
                 android:id="@+id/ratingCon"
-                android:visibility="visible"
+                android:visibility="gone"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -265,7 +266,7 @@
                     android:paddingBottom="15dp"
                     android:textColor="@color/colorPrimaryDark"
                     android:textSize="20sp"
-                    android:text="Rate Your Rider"
+                    android:text="Your Job Rating"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
                 <LinearLayout
@@ -302,22 +303,6 @@
                         android:layout_marginLeft="8dp"
                         android:layout_marginRight="8dp"
                         android:background="@drawable/star_inactive"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_margin="20dp"
-                    android:id="@+id/subRatingBtn"
-                    android:clickable="true"
-                    android:elevation="2dp"
-                    android:padding="15dp"
-                    android:background="@drawable/bg_acc_rounded"
-                    android:gravity="center_horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:textColor="@color/colorPrimary"
-                        android:text="Submit Rating"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
                 </LinearLayout>

@@ -19,6 +19,7 @@
     <string name="agreementText">By clicking sign up you agree to our\n Terms &amp; Conditions and Privacy Policy</string>
     <string name="basicInfo_title">Basic Information</string>
     <string name="forgotPassword">Forgot your Password?</string>
+
     <string name="vehicle_prompt">Select Vehicle</string>
     <string-array name="vehicles">
         <item>Select Vehicle</item>
@@ -38,14 +39,16 @@
     <string name="par_accept">Request Accept</string>
     <string name="par_pickup">Pickup Parcel</string>
     <string name="par_deliver">Deliver Parcel</string>
-    <string-array name="parcel_types">
+    <string-array name="parcel_text_types">
         <item>@string/par_accept</item>
         <item>@string/par_pickup</item>
         <item>@string/par_deliver</item>
     </string-array>
 
-    <string name="google_app_key">AIzaSyCNtzqLNFY9xNwnvoYgqh48zDtQ1s7AKbg</string>
-    <string name="google_url_key">AIzaSyADoSPA53om6p0nZnhYmpUnNdg8NFPqzQA</string>
+    <string name="confirm_dialog_str">Are You Sure! You want to process this step?</string>
+
+    <string name="google_app_key">AIzaSyAyy7fvuO0LxwuOhL8KDBjteegMaOAShpE</string>
+    <string name="google_url_key">AIzaSyBolC4x_OuWyBxj4RJEvMlqaQUonJHzej0</string>
     <string name="title_activity_request_recyle_view">Requests</string>
 
 </resources>

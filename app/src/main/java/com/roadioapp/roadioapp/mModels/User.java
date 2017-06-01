@@ -43,4 +43,21 @@ public class User {
         });
     }
 
+    public void getMobNoByUID(String UID, final DBCallbacks.CompleteListener callback){
+        userCol.child(UID).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User data = dataSnapshot.getValue(User.class);
+                callback.onSuccess(true, data.mob_no);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                callback.onSuccess(false, databaseError.getMessage());
+            }
+        });
+    }
+
+
+
 }

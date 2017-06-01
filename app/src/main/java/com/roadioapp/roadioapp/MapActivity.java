@@ -196,7 +196,7 @@ public class MapActivity extends AppCompatActivity implements
         mapObj.mGoogleApiClient.connect();
     }
 
-    @Override
+    /*@Override
     protected void onResume() {
         super.onResume();
         if (!permissionCheckObj.permissionCheck()) {
@@ -207,7 +207,7 @@ public class MapActivity extends AppCompatActivity implements
                 userLocationObj.startTimer();
             }
         }
-    }
+    }*/
 
     @Override
     protected void onDestroy() {

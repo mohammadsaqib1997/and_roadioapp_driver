@@ -7,6 +7,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.roadioapp.roadioapp.R;
 import com.roadioapp.roadioapp.mInterfaces.DBCallbacks;
@@ -21,33 +22,35 @@ public class UserActiveRequest {
     public String driver_uid, req_id, status;
     public long active_time, complete_time;
 
-    private DatabaseReference mDatabase, userActiveRequestCol, userLiveRequestCol;
-    private AuthObject mAuthObj;
-    private String[] statusArr;
+    private DatabaseReference userActiveRequestCol;
 
     public UserActiveRequest(){
 
     }
 
     public UserActiveRequest(Activity act){
-        mAuthObj = new AuthObject();
-
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         userActiveRequestCol = mDatabase.child("user_active_requests");
-        userLiveRequestCol = mDatabase.child("user_live_requests");
-
-        statusArr = act.getResources().getStringArray(R.array.req_status);
     }
 
     public void checkDriverReqActive(String UID, final DBCallbacks.CompleteListener callback){
         userActiveRequestCol.orderByChild("driver_uid").equalTo(UID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+//                Log.e("CheckData", dataSnapshot+"");
                 String sts = "invalid";
                 if(dataSnapshot.exists()){
-                    sts = "exist";
+                    for(DataSnapshot children: dataSnapshot.getChildren()){
+                        String status = children.child("status").getValue().toString();
+                        if(!status.equals("req.complete")){
+                            sts = "exist";
+                            break;
+                        }
+                    }
+                    callback.onSuccess(true, sts);
+                }else{
+                    callback.onSuccess(true, sts);
                 }
-                callback.onSuccess(true, sts);
             }
 
             @Override
@@ -57,12 +60,25 @@ public class UserActiveRequest {
         });
     }
 
-    public void getRequestData(final String UID, final DBCallbacks.CompleteDSListener callback){
-        userActiveRequestCol.orderByChild("driver_uid").equalTo(UID).addValueEventListener(new ValueEventListener() {
+    public void getResDataByDUID(final String UID, final DBCallbacks.CompleteDSListener callback){
+        userActiveRequestCol.orderByChild("driver_uid").equalTo(UID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
-                    callback.onSuccess(true, "", dataSnapshot);
+                    DataSnapshot selectSnap = null;
+                    for(DataSnapshot children: dataSnapshot.getChildren()){
+                        String status = children.child("status").getValue().toString();
+                        if(!status.equals("req.complete")){
+                            Log.e("SelectedData", children+"");
+                            selectSnap = children;
+                            break;
+                        }
+                    }
+                    if(selectSnap != null){
+                        callback.onSuccess(true, "", selectSnap);
+                    }else {
+                        callback.onSuccess(false, "Data Not Found!", null);
+                    }
                 }else {
                     callback.onSuccess(false, "Data Not Found!", null);
                 }
@@ -71,6 +87,47 @@ public class UserActiveRequest {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 callback.onSuccess(false, databaseError.getMessage(), null);
+            }
+        });
+    }
+
+    public void getResDataByReqID(final String req_id, final DBCallbacks.CompleteDSListener callback){
+        userActiveRequestCol.orderByChild("req_id").equalTo(req_id).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    callback.onSuccess(true, "", dataSnapshot.getChildren().iterator().next());
+                }else {
+                    callback.onSuccess(false, "Data Not Found!", null);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                callback.onSuccess(false, databaseError.getMessage(), null);
+            }
+        });
+    }
+
+    public void setStatus(final String req_id, final String status, final DBCallbacks.CompleteListener callback){
+        userActiveRequestCol.orderByChild("req_id").equalTo(req_id).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String Key = dataSnapshot.getChildren().iterator().next().getKey();
+
+                if(status.equals("req.active")){
+                    userActiveRequestCol.child(Key).child("active_time").setValue(ServerValue.TIMESTAMP);
+                }else if(status.equals("req.complete")){
+                    userActiveRequestCol.child(Key).child("complete_time").setValue(ServerValue.TIMESTAMP);
+                }
+
+                userActiveRequestCol.child(Key).child("status").setValue(status);
+                callback.onSuccess(true, "");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                callback.onSuccess(false, databaseError.getMessage());
             }
         });
     }

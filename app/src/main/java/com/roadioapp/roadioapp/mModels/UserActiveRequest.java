@@ -34,7 +34,7 @@ public class UserActiveRequest {
     }
 
     public void checkDriverReqActive(String UID, final DBCallbacks.CompleteListener callback){
-        userActiveRequestCol.orderByChild("driver_uid").equalTo(UID).addListenerForSingleValueEvent(new ValueEventListener() {
+        userActiveRequestCol.orderByChild("driver_uid").equalTo(UID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 //                Log.e("CheckData", dataSnapshot+"");
@@ -69,7 +69,6 @@ public class UserActiveRequest {
                     for(DataSnapshot children: dataSnapshot.getChildren()){
                         String status = children.child("status").getValue().toString();
                         if(!status.equals("req.complete")){
-                            Log.e("SelectedData", children+"");
                             selectSnap = children;
                             break;
                         }
@@ -130,6 +129,10 @@ public class UserActiveRequest {
                 callback.onSuccess(false, databaseError.getMessage());
             }
         });
+    }
+
+    public void lookupUserReq(){
+
     }
 
     /*public void userReqAct(final String req_id, final String driver_uid, final DBCallbacks.CompleteListener callback){

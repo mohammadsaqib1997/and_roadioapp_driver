@@ -110,39 +110,17 @@ import java.util.TimerTask;
 public class MapActivity extends AppCompatActivity implements
         OnMapReadyCallback, View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    //private GoogleApiClient mGoogleApiClient;
-    Location mCurrentLocation;
-
     private GoogleMap mMap;
     private MapFragment mapFragment;
-    private LatLng karachi;
-    private Location mLastKnownLocation;
-    LocationManager locationManager;
 
 
-    boolean drawerState = false, userCamMove = true, bothLocation = false, pickLocation = false, googleClientConn = false;
+    boolean drawerState = false;
 
     // properties variable
     DrawerLayout drawer_layout;
     ImageView navMenuIcon, logOutBtn;
     RelativeLayout mainActCon;
     LinearLayout curLocCont, setCurLocBtn, bottomBtnCon, requestBtn;
-    /*Timer timer;
-    TimerTask timerTask;
-    final Handler handler = new Handler();*/
-
-    //Storage Variables
-    //LatLng curLocLL;
-    boolean firstCamMov = true;
-    //double azimuth = 0f;
-
-    /*//Firebase Variables
-    private FirebaseAuth mAuth;
-    private String authUid = "", userVehicle = "";
-    private FirebaseAuth.AuthStateListener mAuthListener;
-    private DatabaseReference mDatabase, onlineDrivers, userInfo;*/
-
-    private static boolean appCheckTer = false;
 
     //Objects here
     PermissionCheckObj permissionCheckObj;
@@ -196,19 +174,6 @@ public class MapActivity extends AppCompatActivity implements
         mapObj.mGoogleApiClient.connect();
     }
 
-    /*@Override
-    protected void onResume() {
-        super.onResume();
-        if (!permissionCheckObj.permissionCheck()) {
-            permissionCheckObj.setPermission();
-        } else {
-            if (mapObj.isConnected()) {
-                userLocationObj.startLocationUpdates();
-                userLocationObj.startTimer();
-            }
-        }
-    }*/
-
     @Override
     protected void onDestroy() {
         userLocationObj.stopLocationUpdates();
@@ -220,6 +185,8 @@ public class MapActivity extends AppCompatActivity implements
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mapObj.setMap(mMap);
+        mapObj.setDefaultMapListner();
 
         try {
             boolean success = googleMap.setMapStyle(
@@ -235,84 +202,9 @@ public class MapActivity extends AppCompatActivity implements
 
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
-        karachi = new LatLng(24.861462, 67.009939);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(karachi, 10));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mapObj.karachi, 10));
 
-        mMap.setOnCameraMoveStartedListener(new GoogleMap.OnCameraMoveStartedListener() {
-            @Override
-            public void onCameraMoveStarted(int reason) {
-                userCamMove = true;
-            }
-        });
-
-        mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
-            @Override
-            public void onCameraIdle() {
-                mMap.getUiSettings().setAllGesturesEnabled(true);
-            }
-        });
-
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                return true;
-            }
-        });
-
-        getDeviceLocation(false, false, null, true);
-    }
-
-    private void getDeviceLocation(boolean anim, final boolean defLatLng, final Location curLocation, boolean move) {
-
-        if (permissionCheckObj.permissionCheck()) {
-            if (gpsObj.isGPSEnabled()) {
-                mLastKnownLocation = (curLocation != null) ? curLocation : LocationServices.FusedLocationApi.getLastLocation(mapObj.mGoogleApiClient);
-                if (mLastKnownLocation != null) {
-                    mapObj.uCurrLL = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
-                    if (!mMap.isMyLocationEnabled()) {
-                        mMap.setMyLocationEnabled(true);
-                    }
-                    if (firstCamMov && curLocation != null) {
-                        move = true;
-                        anim = true;
-                        firstCamMov = false;
-                    }
-                    if (move) {
-                        if (anim) {
-                            mapMoveCam(mapObj.uCurrLL, null, true, true);
-                        } else {
-                            mapMoveCam(mapObj.uCurrLL, null, true, false);
-                        }
-                    }
-                } else {
-                    if (defLatLng) {
-                        mapMoveCam(karachi, null, move, anim);
-                    }
-                }
-            } else {
-                gpsObj.enableGPS();
-            }
-        } else {
-            permissionCheckObj.showPermissionErr();
-        }
-    }
-
-    private void mapMoveCam(LatLng latLng, LatLngBounds latLngBounds, boolean uMoveCam, boolean anim) {
-        mMap.getUiSettings().setAllGesturesEnabled(false);
-        if (latLngBounds != null) {
-            if (anim) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, getHeightWidth("w"), 500, 100));
-            } else {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, getHeightWidth("w"), 500, 100));
-            }
-        } else {
-            if (anim) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15.0f));
-            } else {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15.0f));
-            }
-        }
-        userCamMove = uMoveCam;
+        mapObj.getDeviceLocation(false, false, null, true);
     }
 
     @Override
@@ -327,7 +219,7 @@ public class MapActivity extends AppCompatActivity implements
                 }
                 break;
             case R.id.setCurLocBtn:
-                getDeviceLocation(true, true, null, true);
+                mapObj.getDeviceLocation(true, true, null, true);
                 break;
             case R.id.logoutBtn:
                 confirmDialog();
@@ -360,17 +252,6 @@ public class MapActivity extends AppCompatActivity implements
         dialog.show();
     }
 
-    private int getHeightWidth(String arg) {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        if (arg.equals("h")) {
-            return displayMetrics.heightPixels;
-        } else if (arg.equals("w")) {
-            return displayMetrics.widthPixels;
-        }
-        return 0;
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == proConstants.PERM_REQUEST_LOCATION) {
@@ -401,8 +282,7 @@ public class MapActivity extends AppCompatActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
-        mCurrentLocation = location;
-        getDeviceLocation(false, false, mCurrentLocation, false);
+        mapObj.getDeviceLocation(false, false, location, false);
         mapObj.azimuth = location.getBearing();
     }
 
@@ -413,7 +293,7 @@ public class MapActivity extends AppCompatActivity implements
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Toast.makeText(this, connectionResult.getErrorMessage(), Toast.LENGTH_SHORT).show();
     }
 
     private void setProperties() {
@@ -425,6 +305,7 @@ public class MapActivity extends AppCompatActivity implements
 
         permissionCheckObj = new PermissionCheckObj(this);
         userLocationObj = new UserLocationObject(authObj, permissionCheckObj, mapObj, this);
+        userLocationObj.setOnlineDriversCol();
 
         navMenuIcon = (ImageView) findViewById(R.id.navMenuIcon);
         drawer_layout = (DrawerLayout) findViewById(R.id.drawer_layout);

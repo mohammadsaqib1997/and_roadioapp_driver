@@ -13,6 +13,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.roadioapp.roadioapp.RequestActiveActivity;
 import com.roadioapp.roadioapp.mInterfaces.DBCallbacks;
+import com.roadioapp.roadioapp.mModels.ActiveDriver;
 import com.roadioapp.roadioapp.mModels.User;
 import com.roadioapp.roadioapp.mModels.UserActiveRequest;
 
@@ -36,18 +37,25 @@ public class UserLocationObject {
 
     private User userModel;
     private UserActiveRequest userActiveRequestModel;
+    private ActiveDriver activeDriverModel;
 
     public UserLocationObject(AuthObject authObj, PermissionCheckObj permissionCheckObj, MapObject mapObj, Activity activity){
         this.activity = activity;
         this.permissionCheckObj = permissionCheckObj;
         this.mapObj = mapObj;
         this.authObj = authObj;
-        progressBarObj = new ProgressBarObject(activity);
-        onlineDrivers = FirebaseDatabase.getInstance().getReference().child("online_drivers");
         userModel = new User(activity);
+        progressBarObj = new ProgressBarObject(activity);
+    }
+
+    public void setOnlineDriversCol(){
+        onlineDrivers = FirebaseDatabase.getInstance().getReference().child("online_drivers");
         userActiveRequestModel = new UserActiveRequest(activity);
     }
 
+    public void setActiveDriverModel(){
+        activeDriverModel = new ActiveDriver(activity);
+    }
 
     public void startTimer() {
         if(authObj.isLoginUser()){
@@ -59,10 +67,12 @@ public class UserLocationObject {
                     if(status){
                         if(msg.equals("exist")){
                             progressBarObj.hideProgressDialog();
-                            activity.finish();
+                            activity.finishAffinity();
                             activity.startActivity(new Intent(activity, RequestActiveActivity.class));
                         }else{
-                            setOnlineUserCall();
+                            if(timer == null){
+                                setOnlineUserCall();
+                            }
                         }
                     }else{
                         progressBarObj.hideProgressDialog();
@@ -70,12 +80,28 @@ public class UserLocationObject {
                     }
                 }
             });
-
-
         }
     }
 
-    public void setOnlineUserCall(){
+    public void startTimer_AD() {
+        if(authObj.isLoginUser()){
+            userModel.getVehicleByUID(authObj.authUid, new DBCallbacks.CompleteListener() {
+                @Override
+                public void onSuccess(boolean status, String msg) {
+                    if(status){
+                        mapObj.driverVehicle = msg;
+                        timer = new Timer();
+                        initializeTask_AD();
+                        timer.schedule(timerTask, 2000, 2000);
+                    }else{
+                        Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+    }
+
+    private void setOnlineUserCall(){
         userModel.getVehicleByUID(authObj.authUid, new DBCallbacks.CompleteListener() {
             @Override
             public void onSuccess(boolean status, String msg) {
@@ -110,10 +136,27 @@ public class UserLocationObject {
                             Map<String, Object> dataMap = new HashMap<String, Object>();
                             dataMap.put("lat", mapObj.uCurrLL.latitude);
                             dataMap.put("lng", mapObj.uCurrLL.longitude);
-                            dataMap.put("direction", (float) mapObj.azimuth);
+                            dataMap.put("direction", mapObj.azimuth);
                             dataMap.put("uid", authObj.authUid);
                             dataMap.put("vehicle", userVehicle);
                             onlineDrivers.child(authObj.authUid).setValue(dataMap);
+                        }
+                    }
+                });
+            }
+        };
+    }
+
+    private void initializeTask_AD() {
+        timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mapObj.uCurrLL != null) {
+                            mapObj.setDriverMarker(authObj.authUid);
+                            activeDriverModel.setLocationChanged(authObj.authUid, mapObj.uCurrLL.latitude, mapObj.uCurrLL.longitude, mapObj.azimuth);
                         }
                     }
                 });

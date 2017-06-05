@@ -60,13 +60,15 @@ public class UserLocationObject {
     public void startTimer() {
         if(authObj.isLoginUser()){
             progressBarObj.showProgressDialog();
-
             userActiveRequestModel.checkDriverReqActive(authObj.authUid, new DBCallbacks.CompleteListener() {
                 @Override
                 public void onSuccess(boolean status, String msg) {
                     if(status){
                         if(msg.equals("exist")){
                             progressBarObj.hideProgressDialog();
+                            stopTimer();
+                            onlineDrivers.child(authObj.authUid).removeValue();
+                            userActiveRequestModel.removeDriverCheckListener();
                             activity.finishAffinity();
                             activity.startActivity(new Intent(activity, RequestActiveActivity.class));
                         }else{

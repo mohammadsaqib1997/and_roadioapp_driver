@@ -23,6 +23,7 @@ public class UserActiveRequest {
     public long active_time, complete_time;
 
     private DatabaseReference userActiveRequestCol;
+    private ValueEventListener driverCheckListener;
 
     public UserActiveRequest(){
 
@@ -34,7 +35,7 @@ public class UserActiveRequest {
     }
 
     public void checkDriverReqActive(String UID, final DBCallbacks.CompleteListener callback){
-        userActiveRequestCol.orderByChild("driver_uid").equalTo(UID).addValueEventListener(new ValueEventListener() {
+        driverCheckListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 //                Log.e("CheckData", dataSnapshot+"");
@@ -57,7 +58,14 @@ public class UserActiveRequest {
             public void onCancelled(DatabaseError databaseError) {
                 callback.onSuccess(false, databaseError.getMessage());
             }
-        });
+        };
+        userActiveRequestCol.orderByChild("driver_uid").equalTo(UID).addValueEventListener(driverCheckListener);
+    }
+
+    public void removeDriverCheckListener(){
+        if(driverCheckListener != null){
+            userActiveRequestCol.removeEventListener(driverCheckListener);
+        }
     }
 
     public void getResDataByDUID(final String UID, final DBCallbacks.CompleteDSListener callback){
@@ -129,10 +137,6 @@ public class UserActiveRequest {
                 callback.onSuccess(false, databaseError.getMessage());
             }
         });
-    }
-
-    public void lookupUserReq(){
-
     }
 
     /*public void userReqAct(final String req_id, final String driver_uid, final DBCallbacks.CompleteListener callback){

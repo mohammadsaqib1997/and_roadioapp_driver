@@ -215,7 +215,7 @@ public class RequestActiveActivity extends AppCompatActivity implements OnMapRea
                             desLL = new LatLng(Double.parseDouble(userRequestData.desLat),Double.parseDouble(userRequestData.desLng));
                             mapObj.setOrgMarker(orgLL);
                             mapObj.setDesMarker(desLL);
-                            LLBoundSet();
+                            //LLBoundSet();
                         }
                     });
                     userModel.getMobNoByUID(Key, new DBCallbacks.CompleteListener() {
@@ -344,12 +344,16 @@ public class RequestActiveActivity extends AppCompatActivity implements OnMapRea
     }
 
     private void LLBoundSet(){
-        if(nextStatus.equals(statusArr[1]) || nextStatus.equals(statusArr[2])){
-            latLngBounds = new LatLngBounds(orgLL, mapObj.uCurrLL);
-        }else if (nextStatus.equals(statusArr[3])){
-            latLngBounds = new LatLngBounds(desLL, mapObj.uCurrLL);
+        if(mapObj.uCurrLL != null){
+            if(nextStatus.equals(statusArr[1]) || nextStatus.equals(statusArr[2])){
+                latLngBounds = new LatLngBounds(orgLL, mapObj.uCurrLL);
+            }else if (nextStatus.equals(statusArr[3])){
+                latLngBounds = new LatLngBounds(desLL, mapObj.uCurrLL);
+            }else{
+                latLngBounds = null;
+            }
         }else{
-            latLngBounds = null;
+            latLngBounds = new LatLngBounds(orgLL, desLL);
         }
     }
 

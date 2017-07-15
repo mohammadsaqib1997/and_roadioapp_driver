@@ -8,7 +8,13 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
 
     <application
         android:name="android.support.multidex.MultiDexApplication"
@@ -17,12 +23,21 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.roadioapp.roadioapp.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_app_key" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
             android:theme="@style/NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,6 +45,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:theme="@style/NoActionBar"/>
         <activity
             android:name=".SignUp"
             android:theme="@style/NoActionBar" />
@@ -59,6 +78,22 @@
 
         <activity
             android:name=".RequestActiveActivity"
+            android:theme="@style/NoActionBar" />
+
+        <activity
+            android:name=".ForgotPasswordActivity"
+            android:theme="@style/NoActionBar" />
+
+        <activity
+            android:name=".ForgotPassConfirmActivity"
+            android:theme="@style/NoActionBar" />
+
+        <activity
+            android:name=".MyEarningsActivity"
+            android:theme="@style/NoActionBar" />
+
+        <activity
+            android:name=".SettingActivity"
             android:theme="@style/NoActionBar" />
     </application>
 

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/colorAccentClone"
+    tools:context="com.roadioapp.roadioapp.ForgotPasswordActivity">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:src="@drawable/logo" />
+
+    <LinearLayout
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+
+        <TextView
+            android:textSize="18sp"
+            android:padding="10dp"
+            android:textAlignment="center"
+            android:textColor="@color/colorPrimary"
+            android:text="@string/forgotPasswordConfirmText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <LinearLayout
+            android:clipToPadding="false"
+            android:paddingBottom="15dp"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <EditText
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:id="@+id/token"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:hint="Enter Confirmation Token"
+                android:inputType="number"
+                android:maxLength="6"
+                android:padding="10dp"
+                android:textColor="@color/colorPrimary"
+                android:textColorHint="@color/hintColor" />
+            <LinearLayout
+                android:layout_marginBottom="10dp"
+                android:background="@color/border_bottom_color"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
+            <EditText
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:id="@+id/password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:hint="Enter New Password"
+                android:inputType="textPassword"
+                android:maxLength="30"
+                android:padding="10dp"
+                android:textColor="@color/colorPrimary"
+                android:textColorHint="@color/hintColor" />
+            <LinearLayout
+                android:layout_marginBottom="10dp"
+                android:background="@color/border_bottom_color"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
+            <EditText
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:id="@+id/retypePassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:hint="Re-Type Password"
+                android:inputType="textPassword"
+                android:maxLength="30"
+                android:padding="10dp"
+                android:textColor="@color/colorPrimary"
+                android:textColorHint="@color/hintColor" />
+            <LinearLayout
+                android:layout_marginBottom="10dp"
+                android:background="@color/border_bottom_color"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
+            <LinearLayout
+                android:id="@+id/subBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/bg_acc_rounded"
+                android:clickable="true"
+                android:elevation="2dp"
+                android:gravity="center_horizontal"
+                android:padding="10dp">
+                <TextView
+                    android:textSize="18sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SUBMIT"
+                    android:textColor="@color/colorPrimary" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">RoadioApp</string>
+    <string name="app_name">RADlive</string>
     <!--<string name="app_api_domain">http://178.62.103.189/api/index.php/</string>-->
-    <string name="app_api_domain">http://107.170.74.248:4000/api</string>
+    <string name="app_api_domain">http://roadioapp.com/api</string>
 
     <string name="title_activity_sign_up">SignUp</string>
 
@@ -19,6 +19,8 @@
     <string name="agreementText">By clicking sign up you agree to our\n Terms &amp; Conditions and Privacy Policy</string>
     <string name="basicInfo_title">Basic Information</string>
     <string name="forgotPassword">Forgot your Password?</string>
+    <string name="forgotPasswordText">Please enter your phone number to search for your account.</string>
+    <string name="forgotPasswordConfirmText">Please enter confirmation token and new password.</string>
 
     <string name="vehicle_prompt">Select Vehicle</string>
     <string-array name="vehicles">

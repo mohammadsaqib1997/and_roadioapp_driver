@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
-    android:background="@color/colorFontLight2"
+    android:background="@color/colorAccentClone"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -16,21 +16,18 @@
         android:layout_marginTop="-40dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <LinearLayout
+        <ImageView
             android:orientation="vertical"
             android:layout_marginBottom="10dp"
             android:background="@drawable/circle_img"
             android:id="@+id/userProfileImg"
             android:layout_width="80dp"
             android:layout_height="80dp" />
-
         <TextView
-            android:id="@+id/userNameSBar"
+            android:id="@+id/usernameSBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:singleLine="true"
             android:maxLines="1"
-            android:text="John Doe"
             android:textSize="16sp"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:textColor="@color/colorPrimaryDark" />
@@ -40,12 +37,14 @@
         android:layout_width="match_parent"
         android:layout_height="0dp">
         <LinearLayout
+            android:id="@+id/smListCont"
             android:paddingTop="15dp"
             android:paddingBottom="15dp"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <LinearLayout
+                android:id="@+id/myEarningsBtn"
                 android:background="?android:attr/selectableItemBackground"
                 android:clickable="true"
                 android:padding="15dp"
@@ -54,35 +53,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <ImageView
-                    android:src="@drawable/ic_location_pin"
-                    android:layout_width="19dp"
-                    android:layout_height="19dp" />
+                    android:src="@drawable/ic_front_car"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp" />
                 <TextView
                     android:layout_marginLeft="15dp"
                     android:textSize="16dp"
                     android:textColor="@color/colorPrimary"
-                    android:text="Payment"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/requestBtn"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:padding="15dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <ImageView
-                    android:src="@drawable/ic_location_pin"
-                    android:layout_width="19dp"
-                    android:layout_height="19dp" />
-                <TextView
-                    android:layout_marginLeft="15dp"
-                    android:textSize="16dp"
-                    android:textColor="@color/colorPrimary"
-                    android:text="Requests"
+                    android:text="My Earnings"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
             </LinearLayout>
@@ -95,14 +73,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <ImageView
-                    android:src="@drawable/ic_location_pin"
-                    android:layout_width="19dp"
-                    android:layout_height="19dp" />
+                    android:src="@drawable/ic_percentage"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp" />
                 <TextView
                     android:layout_marginLeft="15dp"
                     android:textSize="16dp"
                     android:textColor="@color/colorPrimary"
-                    android:text="Free Rides"
+                    android:text="Use Promo Codes"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
             </LinearLayout>
@@ -115,14 +93,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <ImageView
-                    android:src="@drawable/ic_location_pin"
-                    android:layout_width="19dp"
-                    android:layout_height="19dp" />
+                    android:src="@drawable/ic_news"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp" />
                 <TextView
                     android:layout_marginLeft="15dp"
                     android:textSize="16dp"
                     android:textColor="@color/colorPrimary"
-                    android:text="News"
+                    android:text="What's New"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
             </LinearLayout>
@@ -135,9 +113,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <ImageView
-                    android:src="@drawable/ic_location_pin"
-                    android:layout_width="19dp"
-                    android:layout_height="19dp" />
+                    android:src="@drawable/ic_help"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp" />
                 <TextView
                     android:layout_marginLeft="15dp"
                     android:textSize="16dp"
@@ -171,6 +149,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent" />
         <ImageView
+            android:id="@+id/settingBtn"
             android:layout_margin="15dp"
             android:src="@drawable/ic_setting"
             android:layout_width="19dp"

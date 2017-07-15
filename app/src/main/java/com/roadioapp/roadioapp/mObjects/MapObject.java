@@ -127,7 +127,7 @@ public class MapObject {
                 gpsObj.enableGPS();
             }
         } else {
-            permissionCheckObj.showPermissionErr();
+            permissionCheckObj.setPermission();
         }
     }
 

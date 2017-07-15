@@ -39,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText mPassword;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private TextView mSignup;
+    private TextView mSignup, forgotPassword;
     private ImageView mBack;
     String DOMAIN;
 
@@ -51,6 +51,14 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mEmail = (EditText) findViewById(R.id.email);
         mPassword = (EditText) findViewById(R.id.password);
+
+        forgotPassword = (TextView) findViewById(R.id.forgotPassword);
+        forgotPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switchAct(ForgotPasswordActivity.class);
+            }
+        });
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -194,6 +202,11 @@ public class LoginActivity extends AppCompatActivity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    private void switchAct(Class classname){
+        startActivity(new Intent(this, classname));
+        finish();
     }
 
 }

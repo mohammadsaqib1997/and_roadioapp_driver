@@ -9,6 +9,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.roadioapp.roadioapp.mInterfaces.DBCallbacks;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class UserRequest {
 
     public String desLat, desLng, desText, disText, durText, id, orgLat, orgLng, orgText, parcelThmb, parcelUri, vecType;
@@ -37,5 +40,10 @@ public class UserRequest {
                 callback.onSuccess(false, databaseError.getMessage(), null);
             }
         });
+    }
+
+    public String getFormatDate(){
+        Date date = new Date(createdAt);
+        return new SimpleDateFormat("d MMM yyyy, hh:mm a").format(date);
     }
 }

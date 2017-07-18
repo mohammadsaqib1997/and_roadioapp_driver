@@ -78,7 +78,7 @@ public class UserLocationObject {
                         }
                     }else{
                         progressBarObj.hideProgressDialog();
-                        Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -122,6 +122,7 @@ public class UserLocationObject {
 
     public void stopTimer() {
         if (timer != null) {
+            userActiveRequestModel.removeDriverCheckListener();
             timer.cancel();
             timer = null;
         }

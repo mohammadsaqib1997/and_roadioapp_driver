@@ -38,7 +38,6 @@ public class LoginActivity extends AppCompatActivity {
     private EditText mEmail;
     private EditText mPassword;
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private TextView mSignup, forgotPassword;
     private ImageView mBack;
     String DOMAIN;
@@ -59,14 +58,6 @@ public class LoginActivity extends AppCompatActivity {
                 switchAct(ForgotPasswordActivity.class);
             }
         });
-
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                updateUI(user);
-            }
-        };
 
         mSignup = (TextView) findViewById(R.id.signUp);
 
@@ -105,17 +96,7 @@ public class LoginActivity extends AppCompatActivity {
         if(mAuth.getCurrentUser() != null){
             finish();
             startActivity(new Intent(LoginActivity.this, MapActivity.class));
-        }else{
-            mAuth.addAuthStateListener(mAuthListener);
         }
-    }
-
-    @Override
-    protected void onStop() {
-        if (mAuthListener != null) {
-            mAuth.removeAuthStateListener(mAuthListener);
-        }
-        super.onStop();
     }
 
     private void updateUI(FirebaseUser user) {
@@ -167,6 +148,8 @@ public class LoginActivity extends AppCompatActivity {
                                     if (!task.isSuccessful()) {
                                         Toast.makeText(LoginActivity.this, task.getException().getMessage()+"",
                                                 Toast.LENGTH_SHORT).show();
+                                    }else{
+                                        updateUI(task.getResult().getUser());
                                     }
                                 }
                             });

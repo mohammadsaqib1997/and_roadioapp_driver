@@ -27,7 +27,6 @@ public class RequestRecyleView extends AppCompatActivity {
     RecyclerAdapter mAdapter;
     ProgressBar progressBar;
 
-    private FirebaseAuth mAuth;
     private DatabaseReference mfirebaseDatabase, mcollectionUserRequests;
     List<UserRequests> mList;
     ValueEventListener postListener;
@@ -60,7 +59,6 @@ public class RequestRecyleView extends AppCompatActivity {
         mAdapter = new RecyclerAdapter(mList, RequestRecyleView.this);
         recyclerView.setAdapter(mAdapter);
 
-        mAuth = FirebaseAuth.getInstance();
         mfirebaseDatabase = FirebaseDatabase.getInstance().getReference();
 
         retDataObj = new RetDataObject(this, mfirebaseDatabase);
@@ -102,19 +100,10 @@ public class RequestRecyleView extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        if(mAuth.getCurrentUser() == null){
-            finish();
-            startActivity(new Intent(RequestRecyleView.this, MainActivity.class));
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onDestroy() {
         if(postListener != null){
             mcollectionUserRequests.removeEventListener(postListener);
         }
+        super.onDestroy();
     }
 }

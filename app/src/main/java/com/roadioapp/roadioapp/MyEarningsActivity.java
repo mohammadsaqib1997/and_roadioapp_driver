@@ -72,7 +72,6 @@ public class MyEarningsActivity extends AppCompatActivity {
         mRecyclerView = (RecyclerView) findViewById(R.id.listRequestItems);
 
         mLayoutManager = new LinearLayoutManager(activity);
-        mLayoutManager.setReverseLayout(true);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setHasFixedSize(true);
 
@@ -157,7 +156,6 @@ public class MyEarningsActivity extends AppCompatActivity {
         itemData.put("status", status);
         dataLoad.put(snapshot.getKey(), itemData);
         viewReqItemAdapter.notifyDataSetChanged();
-        mRecyclerView.scrollToPosition(viewReqItemAdapter.getItemCount()-1);
         if(mRecyclerView.getVisibility() != View.VISIBLE){
             progressBar.setVisibility(View.GONE);
             mRecyclerView.setVisibility(View.VISIBLE);
@@ -167,6 +165,7 @@ public class MyEarningsActivity extends AppCompatActivity {
     private void finalLoadData(long childLength, int inc, List<String> dataKeys, JSONObject loadedData){
         if(childLength == inc){
             Collections.sort(dataKeys);
+            Collections.reverse(dataKeys);
             JSONObject item;
             for(int i=0; i<dataKeys.size(); i++){
                 try {

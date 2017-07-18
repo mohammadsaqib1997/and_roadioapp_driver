@@ -105,6 +105,7 @@ public class RequestActiveActivity extends AppCompatActivity implements OnMapRea
     }
 
     private void disconnectObjects(){
+        userActiveRequestModel.removeResDataByReqID();
         userLocationObj.stopLocationUpdates();
         userLocationObj.stopTimer();
         mapObj.mGoogleApiClient.disconnect();
@@ -201,7 +202,7 @@ public class RequestActiveActivity extends AppCompatActivity implements OnMapRea
         userActiveRequestModel.getResDataByDUID(authObj.authUid, new DBCallbacks.CompleteDSListener() {
             @Override
             public void onSuccess(boolean status, String msg, DataSnapshot dataSnapshot) {
-                progressBarObj.hideProgressDialog();
+                /*progressBarObj.hideProgressDialog();*/
                 if (status) {
                     String Key = dataSnapshot.getKey();
                     UserActiveRequest userActiveRequestDataSnap = dataSnapshot.getValue(UserActiveRequest.class);
@@ -210,6 +211,7 @@ public class RequestActiveActivity extends AppCompatActivity implements OnMapRea
                     userRequestModel.getReq(Key+"/"+reqID, new DBCallbacks.CompleteDSListener() {
                         @Override
                         public void onSuccess(boolean status, String msg, DataSnapshot dataSnapshot) {
+                            progressBarObj.hideProgressDialog();
                             UserRequest userRequestData = dataSnapshot.getValue(UserRequest.class);
                             orgLL = new LatLng(Double.parseDouble(userRequestData.orgLat),Double.parseDouble(userRequestData.orgLng));
                             desLL = new LatLng(Double.parseDouble(userRequestData.desLat),Double.parseDouble(userRequestData.desLng));
@@ -227,6 +229,7 @@ public class RequestActiveActivity extends AppCompatActivity implements OnMapRea
                         }
                     });
                 } else {
+                    progressBarObj.hideProgressDialog();
                     Toast.makeText(RequestActiveActivity.this, msg, Toast.LENGTH_SHORT).show();
                 }
             }
@@ -344,16 +347,20 @@ public class RequestActiveActivity extends AppCompatActivity implements OnMapRea
     }
 
     private void LLBoundSet(){
+        LatLngBounds.Builder latLngBuilder = new LatLngBounds.Builder();
         if(mapObj.uCurrLL != null){
             if(nextStatus.equals(statusArr[1]) || nextStatus.equals(statusArr[2])){
-                latLngBounds = new LatLngBounds(orgLL, mapObj.uCurrLL);
+                latLngBuilder.include(orgLL).include(mapObj.uCurrLL);
+                latLngBounds = latLngBuilder.build();
             }else if (nextStatus.equals(statusArr[3])){
-                latLngBounds = new LatLngBounds(desLL, mapObj.uCurrLL);
+                latLngBuilder.include(desLL).include(mapObj.uCurrLL);
+                latLngBounds = latLngBuilder.build();
             }else{
                 latLngBounds = null;
             }
         }else{
-            latLngBounds = new LatLngBounds(orgLL, desLL);
+            latLngBuilder.include(orgLL).include(desLL);
+            latLngBounds = latLngBuilder.build();
         }
     }
 
